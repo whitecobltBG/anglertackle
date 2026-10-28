@@ -194,7 +194,13 @@ public final class ClientEvents {
             // 之前只在 tick 里清一次，会被原版随后的重新赋值覆盖，所以看起来"还能走"。
             mc.player.input.leftImpulse = 0.0f;
             mc.player.input.forwardImpulse = 0.0f;
-            mc.player.setSprinting(false);
+            // ⚠⚠ 2026-10-28（用户："台钓上鱼后视野会缩放"）：**只在对抗中**关冲刺。
+            //   冲刺状态直接乘原版 FOV（×1.15），把它关掉视野会从 1.15 收回 1.0 ——
+            //   看上去就是"视野缩了一下"。上鱼后那 1 秒只是"不许移动"（冲量已归零、
+            //   服务端速度属性也压着），**完全不需要动冲刺状态**，动它就是白送一次视野跳变。
+            if (state.inFight()) {
+                mc.player.setSprinting(false);
+            }
             // 连跳跃也拦掉，否则玩家能蹦着把鱼拽跑
             if (mc.player.input.jumping) {
                 mc.player.input.jumping = false;

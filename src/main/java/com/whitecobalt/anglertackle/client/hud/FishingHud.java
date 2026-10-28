@@ -360,4 +360,12 @@ public final class FishingHud {
         int ay = dir == 3 ? cy - off - 8 : cy - 4;
         graphics.drawString(Minecraft.getInstance().font, arrow, ax, ay, color, true);
     }
+
+
+
+
+
+
+
+
 }

@@ -62,6 +62,14 @@ public final class FishingManager {
      */
     private final Map<UUID, Double> savedMoveSpeed = new HashMap<>();
 
+    /**
+     * 移动锁期间**锁定的位置**（玩家 UUID → 触发锁那一刻的坐标）。
+     *
+     * <p>解锁 = 每 tick 把玩家按回这里。选"按位置"而不是"把速度属性归零"，
+     * 是因为后者会通过原版的 FOV 公式把视野砍半（见锁定块里的注释）。
+     */
+    private final Map<UUID, net.minecraft.world.phys.Vec3> lockPositions = new HashMap<>();
+
     /** 还原被对抗锁住的移动速度。 */
     private void restoreMoveSpeed(ServerPlayer player) {
         Double saved = savedMoveSpeed.remove(player.getUUID());
@@ -750,24 +758,44 @@ public final class FishingManager {
                 // ★诊断：只在"压/不压"变化时记一行（原来每 5 tick 一行，一次对抗刷 139 行）
                 boolean lockingDiag = true;
                 if (lockingDiag != lastLockDiag.getOrDefault(player.getUUID(), false)) {
-                    var dbg = player.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.MOVEMENT_SPEED);
-                    LOGGER.info("[垂纶/诊断·锁] tick {}：会话态={} 会话锁={} 上鱼锁={} 速度属性={}",
+                    LOGGER.info("[垂纶/诊断·锁] tick {}：会话态={} 会话锁={} 上鱼锁={} 离锁定点={}",
                             level.getGameTime(), session.state(), session.state().blocksMovement(),
-                            catchLockActive(player), dbg == null ? -1 : dbg.getBaseValue());
+                            catchLockActive(player),
+                            String.format("%.3f", lockPositions.containsKey(player.getUUID())
+                                    ? player.position().distanceTo(lockPositions.get(player.getUUID())) : -1.0));
                 }
                 lastLockDiag.put(player.getUUID(), lockingDiag);
-                var speedAttr = player.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.MOVEMENT_SPEED);
-                if (speedAttr != null && speedAttr.getBaseValue() > 0.0) {
-                    savedMoveSpeed.put(player.getUUID(), speedAttr.getBaseValue());
-                    speedAttr.setBaseValue(0.0);
+                // ⚠⚠⚠ 2026-10-28 真凶修复：**绝对不许再动 MOVEMENT_SPEED 属性**。
+                //
+                //   原版 AbstractClientPlayer.getFieldOfViewModifier() 把移动速度算进了视野：
+                //       float f2 = attributeValue(MOVEMENT_SPEED) / walkingSpeed;
+                //       f *= (f2 + 1.0F) / 2.0F;
+                //   属性归零 ⇒ f2 = 0 ⇒ 系数 = 0.5 ⇒ **视野 80 直接变 40**；
+                //   而 GameRenderer.tickFov() 每 tick 只靠近一半 ⇒ 看起来就是"视野平滑缩下去"。
+                //   这正是用户反复报的"台钓上鱼后视野缩了一下"、也是我查了四轮都没找到的东西
+                //   （它跟相机、跟路亚缩放毫无关系，是**移动锁的副作用**）。
+                //
+                //   现在换成同样服务端权威、但不碰属性的做法：
+                //     ① 每 tick 把玩家**按回**锁定的那一刻的位置（位置是权威的，客户端怎么发包都没用）；
+                //     ② 速度清零，避免动量继续累积。
+                net.minecraft.world.phys.Vec3 lock = lockPositions.computeIfAbsent(
+                        player.getUUID(), k -> player.position());
+                if (player.position().distanceToSqr(lock) > 1.0E-4) {
+                    player.teleportTo(lock.x, lock.y, lock.z);
                 }
-                player.setSprinting(false);
+                player.setDeltaMovement(0.0, 0.0, 0.0);
+                // ⚠ 只在**对抗中**关冲刺：LANDING（上鱼后那 1 秒）只是锁移动，
+                //   而冲刺状态会乘原版 FOV —— 在这里关掉就等于让台钓的视野跳一下。
+                if (session.state() == FishingSession.State.FIGHT) {
+                    player.setSprinting(false);
+                }
             } else {
                 if (lastLockDiag.getOrDefault(player.getUUID(), false)) {
                     LOGGER.info("[垂纶/诊断·锁] tick {}：解除压制（速度属性还原）", level.getGameTime());
                 }
                 lastLockDiag.put(player.getUUID(), false);
-                restoreMoveSpeed(player);
+                lockPositions.remove(player.getUUID());
+                restoreMoveSpeed(player);   // 兜底：把旧版本可能留在属性上的 0 还原
             }
 
             // 每 2 tick 同步一次状态（客户端在两次之间做插值，保证条子顺滑）

@@ -97,8 +97,13 @@ const fovBody = handler('onComputeFov');
   // 允许出现在注释里，所以只查**代码**里的调用
   const codeOnly = cam.replace(/\/\*[\s\S]*?\*\//g, ' ')
     .split('\n').map((l) => l.replace(/\/\/.*$/, '')).join('\n');
+  // ⚠ 2026-10-28 语义变更（用户最终口径）：上鱼后**必须**把玩家真实朝向转到浮漂最后位置，
+  //   所以 setYRot/setXRot 允许存在 —— 但只准出现在 stepTurn()（转向）里，
+  //   绝不允许出现在对抗跟随（onCameraAngles 主体）里，否则会边跟边抢鼠标。
+  const bodyEnd = codeOnly.indexOf('beginTurnToLastAim');
+  const mainBody = bodyEnd > 0 ? codeOnly.slice(0, bodyEnd) : codeOnly;
   const real = ['setYRot', 'setXRot', 'setYHeadRot', 'setYBodyRot']
-    .filter((m) => new RegExp('\\.' + m + '\\s*\\(').test(codeOnly));
+    .filter((m) => new RegExp('\\.' + m + '\\s*\\(').test(mainBody));
   if (real.length) {
     fail('FishingCamera 动了玩家的**真实朝向**：' + real.join(', ') +
       ' —— 只准改渲染视角（event.setYaw/setPitch），改真实朝向会连带影响抛投方向与原版瞄准');
@@ -132,7 +137,7 @@ const fovBody = handler('onComputeFov');
   //   F1. 瞄准点必须按**时间**做指数平滑（不是固定比例 —— 那会随帧率变手感）；
   //   F2. 有客户端实体时优先用它的**插值位置**（每帧都在动，最顺）。
   if (angles) {
-    if (/smoothTarget\s*=\s*smoothTarget\.lerp\(\s*aim\s*,\s*ease\(dt,\s*POS_TAU\)\s*\)/.test(angles)) {
+    if (/smoothTarget\s*=\s*smoothTarget\.lerp\(\s*bob\s*,\s*ease\(dt,\s*POS_TAU\)\s*\)/.test(angles)) {
       ok('瞄准点按时间做指数平滑（跟浮漂而不是踩 10Hz 台阶）');
     } else {
       fail('瞄准点没有走时间平滑 —— 直接拿同步坐标（每 2 tick 一份）当目标，' +
@@ -143,7 +148,7 @@ const fovBody = handler('onComputeFov');
     } else {
       fail('写进事件的不是平滑角度 —— 与玩家朝向按固定比例混合的结果只跟鼠标有关、不带时间，目标一跳画面就跳');
     }
-    if (/aim\.distanceToSqr\(smoothTarget\)\s*>\s*SNAP_DIST_SQ/.test(angles)) {
+    if (/bob\.distanceToSqr\(smoothTarget\)\s*>\s*SNAP_DIST_SQ/.test(angles)) {
       ok('目标跳太远（换浮漂/重抛）时直接吸附，不会从旧位置慢慢滑过去');
     } else {
       fail('没有"跳变就吸附"的保护 —— 重新抛竿时镜头会横穿整个世界滑过去');
@@ -300,13 +305,21 @@ const fovBody = handler('onComputeFov');
     //     而台钓根本没有「收线拉近」这个概念（它一上鱼就直接收鱼）。
     {
       const camCode2 = code(cam);
-      const fov = /onComputeFov[\s\S]*?boolean want = [^;]*holdingLureRod\(\)/.test(camCode2);
-      const follow = /boolean want = cfgFollow\(\)[\s\S]{0,200}?holdingLureRod\(\)/.test(camCode2);
+      const fovSrc = /onComputeFov[\s\S]*$/.exec(camCode2);
+      const fovSrcText = fovSrc ? fovSrc[0] : '';
+      // 三票同时成立才允许缩放（服务端竿型 + FIGHT + 手上路亚竿）
+      // 2026-10-28 结构变更：总闸改成"锁存（lureZoomLatched）+ 慢放" ——
+      // 一出 FIGHT 不再硬切零，而是用慢速率放回；台钓拿不到锁存，所以仍然是结构上为零。
+      const fov = /if \(st\.lureSession\(\)\) \{\s*lureZoomLatched = true;/.test(fovSrcText)
+        && /if \(!lureZoomLatched \|\| !holdingLureRod\(\)\) \{[\s\S]{0,60}?zoom = 0\.0f;/.test(fovSrcText)
+        && fovSrcText.indexOf('zoom = 0.0f') < fovSrcText.indexOf('setFOV');
+      // 2026-10-28 结构变更：want 拆成了 fighting‖lingering，竿型条件挪进 followable。
+      const follow = /boolean followable = cfgFollow\(\) && holdingLureRod\(\)/.test(camCode2);
       if (fov && follow) {
-        ok('台钓视野不变：收线拉近与视角跟随都要求「手上是路亚竿」');
+        ok('收线拉近只给路亚：总闸 = 在对抗 && 手拿路亚竿；其余时刻 zoom 立刻清零（台钓绝不缩放）');
       } else {
-        fail('拉近/跟随没有竿型这道判据（fov=' + fov + ' follow=' + follow + '）—— '
-          + '台钓只要状态串一帧视野就会被放大，而用户明确定过「台钓视野要不变」');
+        fail('收线拉近没有「非路亚立刻清零」这道总闸（fov=' + fov + ' follow=' + follow + '）—— '
+          + '上一场路亚的 zoom 残留会跟到台钓里，表现为「台钓上鱼后视野被放大」');
       }
       if (/private static boolean holdingLureRod\(\)/.test(camCode2)) {
         ok('判竿型的辅助方法 holdingLureRod() 在（只认 LURE，认不出来返回 false）');
@@ -347,6 +360,23 @@ const fovBody = handler('onComputeFov');
           fail('onHooked() 里台钓不再「直接收鱼」（或 FIGHT 排在 FLOAT 分支之前）—— '
             + '张力条/对抗会在台钓里冒出来，而台钓本来没有张力对抗');
         }
+      }
+    }
+
+
+    // ⚠⚠ 2026-10-28（用户："台钓上鱼后视野会缩放"）：**冲刺只许在 FIGHT 里关**。
+    //   冲刺状态直接乘原版 FOV（×1.15）；在 LANDING（上鱼后那 1 秒）关掉它，
+    //   视野就会从 1.15 收回 1.0 —— 看上去正是"视野缩了一下"。
+    {
+      const evCode = code(ev);
+      const mgrCode3 = code(has(MANAGER, ''));
+      const clientOk = /if \(state\.inFight\(\)\) \{\s*mc\.player\.setSprinting\(false\);/.test(evCode);
+      const serverOk = /if \(session\.state\(\) == FishingSession\.State\.FIGHT\) \{\s*player\.setSprinting\(false\);/.test(mgrCode3);
+      if (clientOk && serverOk) {
+        ok('冲刺只能在对抗中关（上鱼后的移动锁不碰冲刺 —— 否则台钓 FOV 会跳一下）');
+      } else {
+        fail('移动锁里无条件关冲刺（client=' + clientOk + ' server=' + serverOk + '）—— '
+          + '冲刺一关，原版 FOV 从 1.15 收回 1.0，台钓上鱼时就会「视野缩一下」');
       }
     }
 
@@ -585,13 +615,107 @@ const fovBody = handler('onComputeFov');
     if (!declared || !defined) { fail('配置项 ' + k + ' 声明/定义不齐（declared=' + declared + ' defined=' + defined + '）'); n++; }
   }
   if (n === 0) ok('三个配置项（开关 / 跟随强度 / 拉近百分比）都在 [render] 组里');
-  if (!/defineInRange\("hookCameraFollowStrength", 0\.9, 0\.0, 1\.0\)/.test(cfg)) {
-    fail('hookCameraFollowStrength 的默认值/范围不是 0.9 / 0~1');
+  if (!/defineInRange\("hookCameraFollowStrength", 1\.0, 0\.0, 1\.0\)/.test(cfg)) {
+    fail('hookCameraFollowStrength 的默认值/范围不是 1.0 / 0~1（用户 2026-10-28：跟随强度太低，拉满）');
   }
-  if (!/defineInRange\("reelZoomPercent", 93\.0, 70\.0, 100\.0\)/.test(cfg)) {
-    fail('reelZoomPercent 的默认值/范围不是 93 / 70~100（100 = 不拉近）');
+  if (!/defineInRange\("reelZoomPercent", 75\.0, 70\.0, 100\.0\)/.test(cfg)) {
+    fail('reelZoomPercent 的默认值/范围不是 75 / 70~100（100 = 不拉近；用户 2026-10-28 定为 75）');
   }
 }
+
+// ---------------------------------------------------------------- 移动锁 × 视野（2026-10-28）
+//
+// 用户反复报"台钓上鱼后视野缩了一下"，查了四轮才定位：真凶是**移动锁**把
+// MOVEMENT_SPEED 属性归零，而原版 AbstractClientPlayer.getFieldOfViewModifier()
+// 把移动速度算进视野：f *= (speed / walkingSpeed + 1) / 2 —— 归零就是 0.5，
+// 80 的视野当场变 40，再随 GameRenderer.tickFov() 每 tick 靠近一半地缓回来。
+// 所以这条断言盯两件事：锁定期间**不许写属性**，必须用"位置回拉 + 速度清零"。
+{
+  // 本块在顶层作用域，用不到函数内部的 code()/has() 快捷方式，就地取一份。
+  const strip4 = (s) => s.replace(/\/\/[^\n]*/g, ' ').replace(/\/\*[\s\S]*?\*\//g, ' ');
+  const mgrCode4 = strip4(read('src/main/java/com/whitecobalt/anglertackle/fishing/FishingManager.java'));
+  const attrZero = /MOVEMENT_SPEED[\s\S]{0,200}?setBaseValue\(0\.0\)/.test(mgrCode4);
+  const pinBack = /lockPositions\.computeIfAbsent/.test(mgrCode4)
+    && /teleportTo\(lock\.x, lock\.y, lock\.z\)/.test(mgrCode4)
+    && /setDeltaMovement\(0\.0, 0\.0, 0\.0\)/.test(mgrCode4);
+  if (attrZero) {
+    fail('移动锁里还在把 MOVEMENT_SPEED 归零 —— 原版 getFieldOfViewModifier() 会因此把视野乘 0.5（80→40），'
+      + '用户看到的"台钓上鱼后视野缩一下"就是这么来的');
+  } else if (!pinBack) {
+    fail('移动锁既没写属性、也找不到"位置回拉 + 速度清零"（lockPositions / teleportTo / setDeltaMovement）——'
+      + '锁会失效，玩家能走着把鱼拽走');
+  } else {
+    ok('移动锁不许碰 MOVEMENT_SPEED（否则视野会被原版公式砍半）；用位置回拉 + 速度清零');
+  }
+}
+
+
+// ---------------------------------------------------------------- 手感数值（2026-10-28）
+//
+// 用户四条反馈：① 上鱼后垂直方向没跟上；② 缩放回复太快；③ 抛竿时转动困难、还在跟随；
+// ④ 跟随强度太低。这里把"数值层"的答案钉住，免得以后被人悄悄调回去。
+{
+  const cam = read('src/main/java/com/whitecobalt/anglertackle/client/FishingCamera.java')
+    .replace(/\/\/[^\n]*/g, ' ').replace(/\/\*[\s\S]*?\*\//g, ' ');
+  const followFast = /RAMP_PER_SECOND = 8\.0f/.test(cam);
+  const asym = /ZOOM_PRESS_PER_SECOND = 10\.0f/.test(cam) && /ZOOM_RELEASE_PER_SECOND = 1\.8f/.test(cam)
+    && /stepAsym\(zoom, want, frameDt, ZOOM_PRESS_PER_SECOND, ZOOM_RELEASE_PER_SECOND\)/.test(cam);
+  // 2026-10-28 改：停留**不再**绑 LANDING（LANDING 只有 1.25 秒，会把"停在那边"变成"1 秒后闪回"）；
+  // 防漏进下一次抛竿改由"新抛竿时清空 lingerActive"负责。
+}
+
+
+
+
+// ---------------------------------------------------------------- lastAim 的来源（2026-10-28）
+//
+// 踩过的坑：浮漂实体消失后 bobberAimPos() 会退回同步包里的坐标，而那是**抛竿原点**
+// （往往就在玩家脚下）⇒ ① 收尾看向错的地方；② 水平距离≈0 直接 return，角度根本不算。
+{
+  const cam = read('src/main/java/com/whitecobalt/anglertackle/client/FishingCamera.java')
+    .replace(/\/\/[^\n]*/g, ' ').replace(/\/\*[\s\S]*?\*\//g, ' ');
+  const gated = /Vec3 bob = \(followable && st\.bobberActive\(\)\) \? bobberAimPos\(event\.getPartialTick\(\)\) : null;/.test(cam);
+  const ungated = /Vec3 bob = followable \? bobberAimPos\(event\.getPartialTick\(\)\) : null;/.test(cam);
+  if (gated && !ungated) {
+    ok('lastAim 只采信还在场的浮漂实体（实体消失后不再退回抛竿原点）');
+  } else {
+    fail('lastAim 采样没有用 bobberActive 把关（gated=' + gated + ' ungated=' + ungated
+      + '）—— 浮漂消失后 bobberAimPos() 会退回同步包里的**抛竿原点**，收尾会看向"点击左键的地方"，'
+      + '而且那个点常在脚下，水平距离≈0 会让角度直接 return');
+  }
+}
+
+
+
+
+// ---------------------------------------------------------------- 上鱼后"真的转过去"（2026-10-28）
+//
+// 用户最终口径："不是视角不动，而是最终要更新**实际视角位置**到那里"。
+// 所以上鱼后必须改**玩家本人的 yaw/pitch**（setYRot/setXRot），而不是只用
+// event.setYaw 盖画面 —— 盖画面一停手就弹回去，那就是他一路看到的"闪回"。
+{
+  const cam = read('src/main/java/com/whitecobalt/anglertackle/client/FishingCamera.java')
+    .replace(/\/\/[^\n]*/g, ' ').replace(/\/\*[\s\S]*?\*\//g, ' ');
+
+  const begins = /beginTurnToLastAim\(event\.getPartialTick\(\)\)/.test(cam)
+    && /Vec3 eye = mc\.player\.getEyePosition/.test(cam);
+  const turnsPlayer = /mc\.player\.setYRot\(ny\);/.test(cam)
+    && /mc\.player\.setXRot\(np\);/.test(cam)
+    && /mc\.player\.setYHeadRot\(ny\);/.test(cam);
+  const snapsExact = /mc\.player\.setYRot\(turnYaw\);/.test(cam)
+    && /mc\.player\.setXRot\(turnPitch\);/.test(cam);
+  const stopsAtEnd = /turning = false;/.test(cam);
+
+  const seamless = /if \(hasAngles\) \{\s*mc\.player\.setYRot\(smoothYaw\);/.test(cam);
+  if (begins && turnsPlayer && snapsExact && stopsAtEnd && seamless) {
+    ok('上鱼后把玩家真实视角转到浮漂最后位置（起步先用画面当前角度对齐，无 0 帧跳变）');
+  } else {
+    fail('上鱼后没有"真的把视角转过去"（begin=' + begins + ' turn=' + turnsPlayer
+      + ' snap=' + snapsExact + ' stop=' + stopsAtEnd + ' seamless=' + seamless
+      + '）—— 只用 event.setYaw 盖画面的话，一停手就会弹回去（用户看到的"闪回"）');
+  }
+}
+
 
 console.log('');
 console.log(bad === 0 ? '✅ 相机接线正确（只改渲染视角、拉近叠在当前 FOV 上）' : '❌ 相机检查未通过（' + bad + ' 项）');

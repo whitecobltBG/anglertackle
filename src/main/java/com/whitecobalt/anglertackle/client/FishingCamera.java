@@ -39,7 +39,23 @@ import net.neoforged.neoforge.client.event.ViewportEvent;
 public final class FishingCamera {
 
     /** 渐入/渐出速度（1/秒）。4 ≈ 0.25 秒走完，够快但不甩镜头。 */
-    private static final float RAMP_PER_SECOND = 4.0f;
+    // 2026-10-28 用户："跟随强度太低" ⇒ 进入从 4.0 提到 8.0（约 0.12 秒到 63%）。
+    private static final float RAMP_PER_SECOND = 8.0f;
+
+    /** 跟随**松开**的速度（比进入慢，避免"一放就弹回"）。 */
+    private static final float FOLLOW_RELEASE_PER_SECOND = 1.5f;
+
+    /** 收线拉近的**按下**速度（快）。 */
+    private static final float ZOOM_PRESS_PER_SECOND = 10.0f;
+
+    /**
+     * 收线拉近的**松开**速度（慢）。
+     *
+     * <p>用户 2026-10-28："钓上来后的视角缩放回复速度太快"。
+     * 原来按下/松开共用 {@link #RAMP_PER_SECOND}，松手一瞬间就弹回去；
+     * 现在松开单独用一个更小的速率（≈0.6 秒回到原样），手感是"慢慢放回去"。
+     */
+    private static final float ZOOM_RELEASE_PER_SECOND = 1.8f;
     /** 一帧都没算出来时的兜底帧间隔（秒）。约等于 60fps。 */
     private static final double FALLBACK_DT = 1.0 / 60.0;
     /** 这里以下就当作"没生效"，直接不碰事件 —— 免得每帧都写一个几乎相同的值。 */
@@ -68,10 +84,35 @@ public final class FishingCamera {
     private static double frameDt = FALLBACK_DT;
     /** 跟随强度渐入值 0~1。 */
     private static float follow;
+    /** 是否正在把**真实视角**转到浮漂最后位置。 */
+    private static boolean turning;
+    /** 要转到的角度（由浮漂最后位置算出）。 */
+    private static float turnYaw;
+    private static float turnPitch;
+    /** 转向速度（每秒靠近比例）与"到位"判据（度）。 */
+    private static final float TURN_PER_SECOND = 6.0f;
+    private static final float TURN_SNAP_DEG = 0.2f;
+    /** 上一帧的对抗状态（用于检测"对抗刚结束"这个边沿）。 */
+    private static boolean lastFighting;
+    /** 跟随诊断日志的秒级节流。 */
+    private static long lastFollowLogSec = -1L;
+
+    /** 上一帧是否处于"上鱼收尾"（只为诊断日志的边沿触发）。 */
+    private static boolean lastLingering;
+
+    /** 上鱼后仍要盯住的"浮漂消失前最后位置"。 */
+    private static Vec3 lastAim = Vec3.ZERO;
+    private static boolean hasLastAim;
+    /** 还愿意继续盯住 lastAim 的剩余秒数（只在路亚、且第一人称下累积）。 */
+    private static double lingerSeconds;
+    /** 上鱼后继续注视浮漂最后位置的时长（秒）。 */
+    private static final double LINGER_SECONDS = 0.9;
+
+    /** 这一场是不是路亚（一旦服务端说过是，就一直保持到缩放放完为止）。 */
+    private static boolean lureZoomLatched;
+
     /** 收线拉近渐入值 0~1。 */
     private static float zoom;
-    private static boolean lastWantDiag;
-    private static boolean lastFightDiag;
     /** 平滑后的瞄准点（世界坐标）。 */
     private static Vec3 smoothTarget = Vec3.ZERO;
     private static boolean hasTarget;
@@ -136,6 +177,13 @@ public final class FishingCamera {
         return frameDt;
     }
 
+    /** 朝目标值靠拢一步（指数逼近，升/降两个速率分开）。 */
+    private static float stepAsym(float cur, boolean on, double dt, float upRate, float downRate) {
+        float target = on ? 1.0f : 0.0f;
+        float k = (float) Math.min(1.0, (on ? upRate : downRate) * dt);
+        return cur + (target - cur) * k;
+    }
+
     /** 朝目标值靠拢一步（指数逼近）。 */
     private static float step(float cur, boolean on, double dt) {
         float target = on ? 1.0f : 0.0f;
@@ -150,55 +198,74 @@ public final class FishingCamera {
 
         Minecraft mc = Minecraft.getInstance();
         ClientFishingState st = ClientFishingState.get();
-        boolean want = cfgFollow()
-                && holdingLureRod()          // 台钓不跟随（用户定案：视野不变）
-                && st.inFight()
-                && st.bobberActive()
-                && mc.options != null
-                && mc.options.getCameraType().isFirstPerson();
+        boolean firstPerson = mc.options != null && mc.options.getCameraType().isFirstPerson();
+        boolean followable = cfgFollow() && holdingLureRod() && firstPerson;   // 台钓一律不参与
 
-        follow = step(follow, want, dt);
-        Vec3 aim = want ? bobberAimPos(event.getPartialTick()) : null;
-        if (follow < EPS || aim == null) {
-            // 跟随结束：把自己的平滑角度/目标丢掉，下次中鱼重新吸附
+        // 浮漂位置：只在**实体真的还在**时采样；实体消失后 lastAim 冻结在最后一帧。
+        Vec3 bob = (followable && st.bobberActive()) ? bobberAimPos(event.getPartialTick()) : null;
+        if (bob != null) {
+            lastAim = bob;
+            hasLastAim = true;
+        }
+        if (st.inCasting()) {
+            hasLastAim = false;
+            turning = false;
+            hasAngles = false;
+            hasTarget = false;
+        }
+
+        boolean fighting = followable && st.inFight() && st.bobberActive() && bob != null;
+
+        // ⚠⚠⚠ 2026-10-28（用户最终口径）：
+        //   "我要的是真正意义上的视角最后停留……你最后时刻实际上的相机视角就是要在那里"、
+        //   "不是视角不动，而是最终要更新**实际视角位置**到那里"。
+        //
+        //   所以这里**不再用 event.setYaw 盖画面**（那只是渲染层，玩家真实朝向没变，
+        //   一旦停手就弹回去 —— 这就是他一路看到的"闪回"）。改成：
+        //   对抗结束那一刻，直接把**玩家本人的 yaw/pitch** 平滑转过去，转完停在那里。
+        //   视角是真的到那一点了，之后鼠标从那个方向继续。
+        if (lastFighting && !fighting && followable && hasLastAim) {
+            beginTurnToLastAim(event.getPartialTick());
+        }
+        lastFighting = fighting;
+
+        if (!fighting) {
+            if (turning) {
+                stepTurn(dt);
+            }
+            hasAngles = false;   // 渲染层不再覆盖（否则会和真实朝向打架）
+            hasTarget = false;
+            return;
+        }
+
+        // ---- 对抗中：只改渲染视角（不动玩家真实朝向，玩家还能微调） ----
+        follow = stepAsym(follow, true, dt, RAMP_PER_SECOND, FOLLOW_RELEASE_PER_SECOND);
+        if (follow < EPS || bob == null) {
             hasAngles = false;
             hasTarget = false;
             return;
         }
 
-        // ---- 目标位置：先按时间平滑一次 ----
-        if (!hasTarget || aim.distanceToSqr(smoothTarget) > SNAP_DIST_SQ) {
-            smoothTarget = aim;     // 首次 / 换了个浮漂：直接吸附，别从旧位置慢慢滑过去
+        if (!hasTarget || bob.distanceToSqr(smoothTarget) > SNAP_DIST_SQ) {
+            smoothTarget = bob;
             hasTarget = true;
         } else {
-            smoothTarget = smoothTarget.lerp(aim, ease(dt, POS_TAU));
+            smoothTarget = smoothTarget.lerp(bob, ease(dt, POS_TAU));
         }
 
-        // 从**相机**位置算，而不是玩家的眼睛：第一人称下两者基本重合，
-        // 但第三人称/骑乘时相机位置不同，用相机位置才不会算歪。
         Vec3 cam = event.getCamera().getPosition();
         double dx = smoothTarget.x - cam.x;
         double dy = smoothTarget.y - cam.y;
         double dz = smoothTarget.z - cam.z;
         double horiz = Math.sqrt(dx * dx + dz * dz);
         if (horiz < 1.0e-3) {
-            return;   // 浮漂几乎在正上方/正下方，方位角没有意义
+            return;
         }
 
-        // MC 的朝向约定（Entity.getViewVector）：
-        //   dx = -sin(yaw)cos(pitch)，dy = -sin(pitch)，dz = cos(yaw)cos(pitch)
-        // 反解过来就是下面两行（pitch 为正 = 低头）。
         float wantYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
         float wantPitch = (float) -Math.toDegrees(Math.atan2(dy, horiz));
 
-        // ---- 角度：先算"这一帧该看到的画面角度"，再对自己的角度做时间平滑 ----
-        //
-        // ⚠ 不能直接 event.setYaw(玩家朝向 与 目标 的混合)：event 里的 yaw 每帧都是
-        //   玩家的真实朝向，按固定比例混合出来的结果**只跟鼠标有关、不带时间** ——
-        //   目标一跳，画面就跟着跳（这正是"卡卡的"的另一半原因）。
-        //   所以维护自己的 smoothYaw/smoothPitch，用帧率无关的指数逼近追过去。
         float k = follow * (float) cfgStrength();
-        // 偏航必须走**最短弧**：直接线性插值会在 ±180° 边界上把镜头甩一整圈
         float idealYaw = event.getYaw() + Mth.wrapDegrees(wantYaw - event.getYaw()) * k;
         float idealPitch = event.getPitch()
                 + (Mth.clamp(wantPitch, -90.0f, 90.0f) - event.getPitch()) * k;
@@ -214,6 +281,75 @@ public final class FishingCamera {
         }
         event.setYaw(smoothYaw);
         event.setPitch(smoothPitch);
+    }
+
+    /** 记下"要转到哪"：浮漂最后位置相对玩家眼睛的方向。 */
+    private static void beginTurnToLastAim(double partialTick) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) {
+            return;
+        }
+        // ⚠⚠ 2026-10-28（用户："上鱼后最后一刻先零帧改到抛竿点然后缓慢回到浮漂点"）：
+        //
+        //   对抗期间画面是按 smoothYaw/smoothPitch 渲染的（指向浮漂），
+        //   但**玩家真实朝向**从头到尾没动过（还是抛竿时的方向）。
+        //   所以在停手那一帧，渲染层把画面交还给真实朝向 ⇒ 瞬间跳到抛竿点，
+        //   之后转向动画才从那里慢慢转回来。
+        //
+        //   修法：开始转向的**第一帧**先把真实朝向对齐到画面当前角度（= 浮漂方向），
+        //   再从那里转到浮漂最后位置。视角连续，没有 0 帧跳变。
+        if (hasAngles) {
+            mc.player.setYRot(smoothYaw);
+            mc.player.setXRot(smoothPitch);
+            mc.player.setYHeadRot(smoothYaw);
+        }
+
+        Vec3 eye = mc.player.getEyePosition((float) partialTick);
+        double dx = lastAim.x - eye.x;
+        double dy = lastAim.y - eye.y;
+        double dz = lastAim.z - eye.z;
+        double horiz = Math.sqrt(dx * dx + dz * dz);
+        if (horiz < 1.0e-3) {
+            return;   // 正上方/正下方：没有有意义的方位角
+        }
+        turnYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+        turnPitch = (float) Mth.clamp(-Math.toDegrees(Math.atan2(dy, horiz)), -90.0, 90.0);
+        turning = true;
+
+        AnglersTackle.LOGGER.info("[垂纶/诊断·转向] 开始把真实视角转到浮漂最后位置：目标 yaw={} pitch={} ｜ 当前 yaw={} pitch={} ｜ 点={}/{}/{}",
+                String.format("%.1f", turnYaw), String.format("%.1f", turnPitch),
+                String.format("%.1f", mc.player.getYRot()), String.format("%.1f", mc.player.getXRot()),
+                String.format("%.1f", lastAim.x), String.format("%.1f", lastAim.y), String.format("%.1f", lastAim.z));
+    }
+
+    /** 每帧把玩家本人的 yaw/pitch 朝目标转一点（真实朝向，不是渲染）。 */
+    private static void stepTurn(double dt) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || !hasLastAim) {
+            turning = false;
+            return;
+        }
+        float k = (float) Math.min(1.0, TURN_PER_SECOND * dt);
+        float curYaw = mc.player.getYRot();
+        float curPitch = mc.player.getXRot();
+        float dYaw = Mth.wrapDegrees(turnYaw - curYaw);
+        float dPitch = turnPitch - curPitch;
+
+        if (Math.abs(dYaw) < TURN_SNAP_DEG && Math.abs(dPitch) < TURN_SNAP_DEG) {
+            mc.player.setYRot(turnYaw);
+            mc.player.setXRot(turnPitch);
+            mc.player.setYHeadRot(turnYaw);
+            turning = false;                       // 转到位：停在这里，不再动
+            AnglersTackle.LOGGER.info("[垂纶/诊断·转向] 已到位：yaw={} pitch={}",
+                    String.format("%.1f", mc.player.getYRot()), String.format("%.1f", mc.player.getXRot()));
+            return;
+        }
+
+        float ny = curYaw + dYaw * k;
+        float np = curPitch + dPitch * k;
+        mc.player.setYRot(ny);
+        mc.player.setXRot(np);
+        mc.player.setYHeadRot(ny);
     }
 
     /**
@@ -278,23 +414,37 @@ public final class FishingCamera {
         }
     }
 
-    // ------------------------------------------------------------------ 收线拉近
+    // ------------------------------------------------------------------ 收线拉近（**只给路亚**）
     @SubscribeEvent
     public static void onComputeFov(ViewportEvent.ComputeFov event) {
         ClientFishingState st = ClientFishingState.get();
-        // ⚠ 用户定案（2026-10-16）：台钓视野必须**不变** ⇒ 多判一道竿型。
-        boolean want = st.inFight() && st.reeling() && holdingLureRod();
-        // ★诊断：**只在状态变化时**记一行（原来每帧一行，一次收线就刷了 1272 行日志）。
-        //   带上**竿型**：这样"台钓被放大"到底是"手拿路亚竿"还是"状态串了"一眼可辨。
-        if (want != lastWantDiag || st.inFight() != lastFightDiag) {
-            lastWantDiag = want;
-            lastFightDiag = st.inFight();
-            com.whitecobalt.anglertackle.AnglersTackle.LOGGER.info(
-                    "[垂纶/诊断·相机] 拉近={} 在对抗={} 收线中={} 手竿={} zoom={}",
-                    want, st.inFight(), st.reeling(),
-                    holdingLureRod() ? "路亚" : "台钓/空手", String.format("%.3f", zoom));
+
+        // ⚠⚠ 2026-10-28（用户："不要牵连路亚，我明确了只要路亚的视角缩放"）
+        //
+        // 三票制总闸：**服务端说这一场是路亚** + 客户端在 FIGHT + 手里确实是路亚竿。
+        // 任一不成立 ⇒ 第一帧把 zoom 清零并直接返回，一个像素都不改（台钓因此结构上不可能缩放）。
+        //
+        // ★ 2026-10-28 补充定案：台钓那阵"视野缩一下"**不是这条路**造成的 ——
+        //   真凶是移动锁把 MOVEMENT_SPEED 属性归零，触发了原版
+        //   getFieldOfViewModifier() 里的 (speed/walk + 1)/2 = 0.5。已在 FishingManager 修掉。
+        //   这个 handler 只负责"路亚收线那点轻微拉近"，别再往它身上揽别的锅。
+        // ⚠⚠ 2026-10-28 用户第 2 条："视角到最后没有缓慢回复的过程，而是很生硬的大小调整"。
+        //   原来这里一出 FIGHT 就 `zoom = 0` —— 那是**硬切**，松手/上鱼瞬间视野"啪"地弹回。
+        //   现在：只要这一场是**路亚**（服务端说的），就允许 zoom 继续用慢速率放回；
+        //   台钓永远拿不到这个锁（lureSession 恒 false），所以台钓仍然一个像素都不动。
+        if (st.lureSession()) {
+            lureZoomLatched = true;
         }
-        zoom = step(zoom, want, frameDt);
+        if (!st.inSession() && zoom < EPS) {
+            lureZoomLatched = false;   // 会话结束且已经放完 ⇒ 解锁
+        }
+        if (!lureZoomLatched || !holdingLureRod()) {
+            zoom = 0.0f;               // 台钓 / 空手：结构上清零
+            return;
+        }
+
+        boolean want = st.inFight() && st.reeling();
+        zoom = stepAsym(zoom, want, frameDt, ZOOM_PRESS_PER_SECOND, ZOOM_RELEASE_PER_SECOND);
         if (zoom < EPS) {
             return;
         }
@@ -303,4 +453,6 @@ public final class FishingCamera {
         // ★ 乘在**当前** FOV 上：基线是画面上本来就有的视野水平，松手即回到原样。
         event.setFOV(event.getFOV() * factor);
     }
+
+
 }

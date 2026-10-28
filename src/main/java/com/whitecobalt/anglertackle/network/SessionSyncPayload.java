@@ -79,7 +79,15 @@ public record SessionSyncPayload(
          * {@code movementLockTicks > 0} 就知道"鱼给了、视角该收了"），
          * <b>移动</b>由客户端拿这个 tick 数**自己倒计时**（不再依赖状态机）。
          */
-        byte movementLockTicks
+        byte movementLockTicks,
+        /**
+         * **服务端权威**：这一场是不是路亚（{@code rodType()==LURE}）。
+         *
+         * <p>⚠ 2026-10-28：客户端"手拿什么竿 / 状态几"都可能被串掉，而视野缩放
+         * 一旦误判就会在台钓上发生。竿型以服务端为准，客户端只照抄 —— 这样
+         * **台钓场次在结构上就不可能进入缩放分支**。
+         */
+        boolean lureSession
 ) implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<SessionSyncPayload> TYPE =
@@ -110,6 +118,7 @@ public record SessionSyncPayload(
                 buf.writeFloat(p.rodDurabilityRatio);
                 // ⚠ 追加在**最后**：这个包是手写编解码，插在中间会让后面字段整体错位
                 buf.writeByte(p.movementLockTicks);
+                buf.writeBoolean(p.lureSession);
                 // 配件耐久：先写条数，再逐条写 (槽位, 已损耗, 上限)
                 int[] pd = p.partsDurability == null ? new int[0] : p.partsDurability;
                 buf.writeByte(pd.length / 3);
@@ -142,6 +151,7 @@ public record SessionSyncPayload(
                 boolean overCap = buf.readBoolean();
                 float rodRatio = buf.readFloat();
                 byte moveLock = buf.readByte();
+                boolean lureSession = buf.readBoolean();
                 int n = buf.readByte() & 0xFF;
                 int[] pd = new int[n * 3];
                 for (int i = 0; i < n; i++) {
@@ -151,7 +161,7 @@ public record SessionSyncPayload(
                 }
                 return new SessionSyncPayload(state, tension, stamina, distance, safe, danger,
                         struggleDir, sprinting, fatigued, bobberActive, rzTicks, rzLimit,
-                        charge, bx, by, bz, pd, overCap, rodRatio, moveLock);
+                        charge, bx, by, bz, pd, overCap, rodRatio, moveLock, lureSession);
             }
     );
 

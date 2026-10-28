@@ -130,6 +130,7 @@ public final class ClientFishingState {
         // 服务端在**上鱼那一刻的最后一份快照**里给这个值 > 0 ⇒
         // 客户端据此立刻收掉视角/条子（见 inFight / tensionBarsVisible），但移动再锁这么久。
         this.movementLockTicks = Math.max(0, p.movementLockTicks());
+        this.lureSession = p.lureSession();
     }
 
     /**
@@ -260,6 +261,24 @@ public final class ClientFishingState {
      * 别再把三件事绑到同一个状态上 —— 那正是 2026-10-16 我犯的错。
      */
     private int movementLockTicks;
+
+    /**
+     * 是否处于"上鱼后"那一段（LANDING）。
+     *
+     * <p>相机用它来决定"上鱼后继续盯着浮漂最后位置"这段收尾还该不该有：
+     * 一旦重新抛竿（CASTING）就必须立刻结束，否则抛竿时镜头还黏在上一竿的点上，
+     * 玩家会感觉"转视角发滞"（用户 2026-10-28 报的第 3 条）。
+     */
+    public boolean inLanding() { return this.state == STATE_LANDING; }
+
+    /** 是否在"抛竿蓄力"（新一轮钓鱼的开始）。收尾记忆靠它清空，而不是靠"不在 LANDING"。 */
+    public boolean inCasting() { return this.state == STATE_CASTING; }
+
+    /** 服务端权威的竿型：这一场是不是路亚。 */
+    private boolean lureSession;
+
+    /** 这一场是不是路亚（服务端说了算；台钓恒为 false）。 */
+    public boolean lureSession() { return this.lureSession; }
 
     /** ★临时诊断用（定位完就删）：原始 state 与剩余锁 tick。 */
     public int rawStateForDebug() { return this.state; }

@@ -4055,13 +4055,13 @@ public final class Config {
         hookCameraFollowStrength = b.comment("""
                 跟随强度 0~1：1 = 完全对准鱼钩，0.5 = 只拉一半（还能用鼠标偏一点）
                 实际强度还会乘以一个约 0.25 秒的渐入，避免刚中鱼时镜头猛甩。""")
-                .defineInRange("hookCameraFollowStrength", 0.9, 0.0, 1.0);
+                .defineInRange("hookCameraFollowStrength", 1.0, 0.0, 1.0);
         reelZoomPercent = b.comment("""
                 收线时视野缩到原来的百分之几 / Zoom while reeling
                 ⚠ **相对当前 FOV 相乘**，不是写死一个数值 —— 所以它是叠在其它视野效果
                 之上的"再来一点"，松手就回到原来的水平（用户口径："松开放线回到上鱼时的放大水平"）。
                 100 = 不拉近。只在对抗中且左键按住时生效。""")
-                .defineInRange("reelZoomPercent", 93.0, 70.0, 100.0);
+                .defineInRange("reelZoomPercent", 75.0, 70.0, 100.0);
         b.pop();
     }
 }

@@ -3870,12 +3870,104 @@ const CASES = [
         'fight-lock-no-landing'));
     } },
 
+  // ---- 2026-10-28：收线拉近的总闸（用户："不要牵连路亚，只要台钓不放大"）----
+
+  // ---- 2026-10-28：冲刺只能在对抗中关（台钓落鱼时 FOV 跳变的真凶）----
+
+  // ---- 2026-10-28：移动锁归零 MOVEMENT_SPEED ⇒ 原版把视野乘 0.5（台钓上鱼后 80→40 的真凶）----
+
+  // ---- 2026-10-28：上鱼后不许闪回（必须继续盯着浮漂最后位置）----
+
+  // ---- 2026-10-28 用户："钓上来后的视角缩放回复速度太快" ----
+  { dir: 'zoom-release-too-fast', checker: 'check-fishing-camera.js', expect: 1,
+    desc: '缩放改回按下/松开同一速率 —— 松手瞬间弹回，用户报过的"回复太快"',
+    mutate: (at) => {
+      const F = 'src/main/java/com/whitecobalt/anglertackle/client/FishingCamera.java';
+      at.set(F, mustReplace(at.get(F),
+        'zoom = stepAsym(zoom, want, frameDt, ZOOM_PRESS_PER_SECOND, ZOOM_RELEASE_PER_SECOND);',
+        'zoom = step(zoom, want, frameDt);',
+        'zoom-release-too-fast'));
+    } },
+
+  // ---- 2026-10-28 用户："钓鱼抛竿后视角转动困难且抛竿时也追随浮漂" ----
+
+  // ---- 2026-10-28：收尾不许看向"抛竿原点"（浮漂消失后仍采样同步坐标）----
+
+  // ---- 2026-10-28：上鱼后必须真的转视角，不许只盖画面 ----
+
+  // ---- 2026-10-28：转向起步不许跳回抛竿点（先用画面当前角度对齐）----
+  { dir: 'turn-starts-with-jump', checker: 'check-fishing-camera.js', expect: 1,
+    desc: '去掉"起步对齐"—— 停手那一帧真实朝向还停在抛竿方向，画面先跳到抛竿点再慢慢转过去（用户描述的那个观感）',
+    mutate: (at) => {
+      const F = 'src/main/java/com/whitecobalt/anglertackle/client/FishingCamera.java';
+      at.set(F, mustReplace(at.get(F),
+        'if (hasAngles) {',
+        'if (false) {',
+        'turn-starts-with-jump'));
+    } },
+  { dir: 'turn-only-covers-render', checker: 'check-fishing-camera.js', expect: 1,
+    desc: '把"转真实视角"退回成"只盖渲染画面" —— 一停手就弹回原朝向，正是用户反复报的"闪回"',
+    mutate: (at) => {
+      const F = 'src/main/java/com/whitecobalt/anglertackle/client/FishingCamera.java';
+      at.set(F, mustReplace(at.get(F),
+        'mc.player.setYRot(ny);',
+        '// mc.player.setYRot(ny);',
+        'turn-only-covers-render'));
+    } },
+  { dir: 'lastaim-uses-cast-origin', checker: 'check-fishing-camera.js', expect: 1,
+    desc: 'lastAim 采样不再要求浮漂在场 —— 实体消失后 bobberAimPos 退回同步包里的抛竿原点，收尾会看向"点击左键的地方"',
+    mutate: (at) => {
+      const F = 'src/main/java/com/whitecobalt/anglertackle/client/FishingCamera.java';
+      at.set(F, mustReplace(at.get(F),
+        'Vec3 bob = (followable && st.bobberActive()) ? bobberAimPos(event.getPartialTick()) : null;',
+        'Vec3 bob = followable ? bobberAimPos(event.getPartialTick()) : null;',
+        'lastaim-uses-cast-origin'));
+    } },
+  { dir: 'linger-leaks-into-cast', checker: 'check-fishing-camera.js', expect: 1,
+    desc: '新抛竿时不再清掉收尾停留 —— 上一竿的"停住"会带进下一次抛竿，抛竿时转视角发滞',
+    mutate: (at) => {
+      const F = 'src/main/java/com/whitecobalt/anglertackle/client/FishingCamera.java';
+      at.set(F, mustReplace(at.get(F),
+        'if (st.inCasting()) {',
+        'if (false) {',
+        'linger-leaks-into-cast'));
+    } },
+  { dir: 'movelock-attr-zero-halves-fov', checker: 'check-fishing-camera.js', expect: 1,
+    desc: '移动锁改回把 MOVEMENT_SPEED 归零 —— 原版 getFieldOfViewModifier 会算出 (0/walk+1)/2=0.5，视野被砍半',
+    mutate: (at) => {
+      const F = 'src/main/java/com/whitecobalt/anglertackle/fishing/FishingManager.java';
+      at.set(F, mustReplace(at.get(F),
+        'player.setDeltaMovement(0.0, 0.0, 0.0);',
+        'player.setDeltaMovement(0.0, 0.0, 0.0);\n'
+          + '                var speedAttr = player.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.MOVEMENT_SPEED);\n'
+          + '                if (speedAttr != null) { speedAttr.setBaseValue(0.0); }',
+        'movelock-attr-zero-halves-fov'));
+    } },
+  { dir: 'sprint-off-in-landing', checker: 'check-fishing-camera.js', expect: 1,
+    desc: '移动锁里无条件关冲刺 —— 冲刺×1.15 的 FOV 被收回 1.0，台钓上鱼时会看到「视野缩一下」',
+    mutate: (at) => {
+      const F = 'src/main/java/com/whitecobalt/anglertackle/client/ClientEvents.java';
+      at.set(F, mustReplace(at.get(F),
+        'if (state.inFight()) {',
+        'if (true) {',
+        'sprint-off-in-landing'));
+    } },
+  { dir: 'reel-zoom-leaks-to-float', checker: 'check-fishing-camera.js', expect: 1,
+    desc: '拆掉"非路亚立刻清零"这道总闸 —— 上一场路亚的 zoom 残留会跟到台钓里，表现为台钓上鱼后视野被放大（用户反复反馈过的那个）',
+    mutate: (at) => {
+      const F = 'src/main/java/com/whitecobalt/anglertackle/client/FishingCamera.java';
+      at.set(F, mustReplace(at.get(F),
+        "if (!lureZoomLatched || !holdingLureRod()) {",
+        "if (false) {",
+        'reel-zoom-leaks-to-float'));
+    } },
   { dir: 'camera-follow-during-landing', checker: 'check-fishing-camera.js', expect: 1,
     desc: '相机跟随也改用 movementLocked() —— 鱼都进包了镜头还黏着浮漂一秒（相机跟的是张力，不该跟锁绑）',
     mutate: (at) => {
       const F = 'src/main/java/com/whitecobalt/anglertackle/client/FishingCamera.java';
-      at.set(F, mustReplace(at.get(F), '                && st.inFight()',
-        '                && st.movementLocked()', 'camera-follow-during-landing'));
+      at.set(F, mustReplace(at.get(F),
+        'boolean fighting = followable && st.inFight()',
+        'boolean fighting = followable && st.movementLocked()', 'camera-follow-during-landing'));
     } },
   { dir: 'hud-status-shows-reel', checker: 'check-fishing-camera.js', expect: 1,
     desc: '状态行里把「收线中/放线」加回去 —— 用户明确要求去掉的那一段（①）又回来了',

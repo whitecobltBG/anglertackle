@@ -3077,7 +3077,9 @@ public final class FishingSession {
                 this.overCapacity,
                 rodDurabilityRatio(),
                 // 上鱼后"移动还要锁多久"：客户端照这个值自己倒计时（见字段的说明）
-                (byte) Math.max(0, this.catchMoveLockTicks)
+                (byte) Math.max(0, this.catchMoveLockTicks),
+                // 服务端权威的竿型：客户端据此决定"允许不允许缩放视野"
+                rodType() == com.whitecobalt.anglertackle.item.RodItem.RodType.LURE
         );
     }
 

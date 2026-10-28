@@ -8401,7 +8401,7 @@
         },
         {
           "key": "reelZoomPercent",
-          "def": 93,
+          "def": 75,
           "min": 70,
           "max": 100,
           "type": "double",
