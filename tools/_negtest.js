@@ -25,6 +25,10 @@ const OUT = path.join(ROOT, 'build', 'negtest');
 //   （把模板池的内容当成了结构 JSON，于是 placement 是 undefined）。
 //   所以下面所有用例都通过 at.get('文件名') 取，取不到或有歧义就报错。
 const FILES = [
+  // 2026-10-29 音效：负例要改 sounds.json ⇒ 必须进副本（否则读真仓库那份，改坏也不红）
+  'src/main/resources/assets/anglertackle/sounds.json',
+  'src/main/java/com/whitecobalt/anglertackle/registry/ModSounds.java',
+  'src/main/java/com/whitecobalt/anglertackle/client/ReelSounds.java',
   // 食用适宜度（2026-10-10）：新模块 + 两处接线**必须进副本**。
   // 为什么不进副本就等于没测：负例跑的是"真仓库里的检查器 + ATL_ROOT 指向的副本"，
   // 副本里没有这个文件，检查器就会读到真仓库那份 ⇒ 改坏了也不红（tools/dish-name.js 刚踩过）。
@@ -3896,6 +3900,28 @@ const CASES = [
   // ---- 2026-10-28：上鱼后必须真的转视角，不许只盖画面 ----
 
   // ---- 2026-10-28：转向起步不许跳回抛竿点（先用画面当前角度对齐）----
+
+  // ---- 2026-10-29：sounds.json 指向别的命名空间 ⇒ 游戏里没声音且不报错 ----
+
+  // ---- 2026-10-29：力竭退出后立刻重进 ⇒ 状态每轮闪一下（用户听到的"断断续续"）----
+  { dir: 'fatigue-lockout-removed', checker: 'check-fatigue-flicker.js', expect: 1,
+    desc: '把力竭的再进入冷却判断去掉 —— 体力仍在阈值下时会"退出→下一 tick 重进"，客户端 fatigued 每轮抖一次',
+    mutate: (at) => {
+      const F = 'src/main/java/com/whitecobalt/anglertackle/fishing/FishingSession.java';
+      at.set(F, mustReplace(at.get(F),
+        '                && this.fatigueLockoutTicks <= 0\n',
+        '\n',
+        'fatigue-lockout-removed'));
+    } },
+  { dir: 'sound-json-cross-namespace', checker: 'check-sounds.js', expect: 1,
+    desc: 'sounds.json 里把 anglertackle:lure_cast 写成 minecraft:lure_cast —— 注册表/键/文件名三处不一致，进游戏静音但日志一声不吭',
+    mutate: (at) => {
+      const F = 'src/main/resources/assets/anglertackle/sounds.json';
+      at.set(F, mustReplace(at.get(F),
+        '"name": "anglertackle:lure_cast"',
+        '"name": "minecraft:lure_cast"',
+        'sound-json-cross-namespace'));
+    } },
   { dir: 'turn-starts-with-jump', checker: 'check-fishing-camera.js', expect: 1,
     desc: '去掉"起步对齐"—— 停手那一帧真实朝向还停在抛竿方向，画面先跳到抛竿点再慢慢转过去（用户描述的那个观感）',
     mutate: (at) => {
@@ -6088,7 +6114,7 @@ const CASES = [
     desc: '保底窗口内又能点亮疲劳（红金鱼一轮软到底，用户要修的就是这个）',
     mutate: (at) => {
       at.set('FishingSession.java', mustReplace(at.get('FishingSession.java'),
-        'this.freshStruggleTicks <= 0\n                && !this.sprinting',
+        'this.freshStruggleTicks <= 0\n                && this.fatigueLockoutTicks <= 0\n                && !this.sprinting',
         '!this.sprinting', 'floorstruggle-ungated'));
     } },
 

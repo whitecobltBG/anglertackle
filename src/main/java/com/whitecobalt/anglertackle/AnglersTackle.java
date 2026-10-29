@@ -5,6 +5,7 @@ import com.whitecobalt.anglertackle.registry.ModBlocks;
 import com.whitecobalt.anglertackle.registry.ModDataComponents;
 import com.whitecobalt.anglertackle.registry.ModEntities;
 import com.whitecobalt.anglertackle.registry.ModItems;
+import com.whitecobalt.anglertackle.registry.ModSounds;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -98,7 +99,7 @@ public final class AnglersTackle {
         ModBlocks.register(modBus);
         ModBlockEntities.register(modBus);
         // ModMenus.register(modBus);
-        // ModSounds.register(modBus);
+        ModSounds.register(modBus);
 
         LOGGER.info("[垂纶] 注册完成：数据组件 / 物品 / 实体");
     }

@@ -1,86 +1,183 @@
 package com.whitecobalt.anglertackle.client;
 
+import com.whitecobalt.anglertackle.client.sound.LoopSound;
+import com.whitecobalt.anglertackle.registry.ModSounds;
 import net.minecraft.client.Minecraft;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 
 /**
- * 收线时的声音（用户 2026-10-05："路亚收线时没有声音"）。
+ * 路亚的动作音：抛竿 / 收线（对抗、力竭）/ 放线 / 上鱼。
  *
- * <h2>为什么用原版音效、不加自己的 ogg</h2>
- * 用户要的是"收线有个响"，而**原版 1.21.1 有两个现成的、语义都对得上的音效**
- * （不是猜的：从本机 `assets/indexes` 里的 `minecraft/sounds.json` 逐个查过，共 1613 个音效）：
- * <table>
- *   <tr><td>{@code block.lever.click}</td><td>短促的机械"咔哒" —— 当**摇轮**的那一下</td></tr>
- *   <tr><td>{@code entity.fishing_bobber.retrieve}</td><td>原版收线时的"线收进来"底噪 —— 当**底层哗啦**</td></tr>
- * </table>
- * 于是不用往仓库里塞音频文件（体积 + 授权都不必操心），也不依赖任何资源包。
+ * <h2>素材来源（2026-10-29 用户给的 5 段视频）</h2>
+ * <pre>
+ *   抛竿声.mp4            → lure_cast
+ *   对抗时拉线.mp4        → reel_fight
+ *   鱼力竭时拉线.mp4      → reel_tired
+ *   放线.mp4              → line_release
+ *   拉上鱼（刚刚结束时）.mp4 → lure_land
+ * </pre>
  *
- * <h2>可选替换（想换味道就改这两个常量）</h2>
- * · 金属感更强：{@code item.armor.equip_chain}（铁链哗啦）或 {@code block.chain.step}
- * · 木质纺车轮：{@code block.wooden_button.click_on}（{@code random/wood_click}）
- * · 更闷的齿轮：{@code block.piston.contract}
- * 这些 id 都在原版 sounds.json 里，换一个常量即可，不需要新增资源。
+ * <h2>⚠⚠ 2026-10-29 用户划的边界</h2>
+ * "我一直只要求改力竭时收线的声音，其他的别擅作主张。"
+ * ⇒ 这个类里**只有 reel_tired 相关的逻辑允许改**；抛竿 / 落水 / 咬钩 / 对抗收线 / 放线 / 上鱼
+ * 一律保持既有行为，不要顺手"优化"。
  *
- * <h2>为什么放在客户端</h2>
- * "有没有在收线"是**本地输入**（左键按住），服务端每 tick 同步一次反而更糊；
- * 而且声音纯表现，不该占网络包。所以由 {@link ClientEvents#onClientTick} 每 tick 调一次，
- * 状态取 {@link ClientFishingState}（它本来就是本地预测的那份状态）。
- *
- * <h2>张力→音高</h2>
- * 张力越接近上限，咔哒声越尖、越响一点点（{@code dangerRatio()} 0→1），
- * 玩家不用盯 HUD 也能靠耳朵听出"该放线了"。这是手感的一部分，不是花活。
+ * <h2>收线为什么用循环实例</h2>
+ * 一次性 {@code playSound} 播的是整段素材且停不下来：切放线时旧音还拖着、快速收放会叠层。
+ * 这里收线/放线各一个 {@link LoopSound}，状态一变立刻 {@code stopNow()}。
  */
 public final class ReelSounds {
 
-    /** 摇轮咔哒的间隔（tick）：4 tick = 每秒 5 声，接近真实纺车轮的节奏。 */
-    private static final int CRANK_INTERVAL = 4;
-    /** "线收进来"底噪的间隔：比咔哒稀，避免糊成一片。 */
-    private static final int WHIRR_INTERVAL = 12;
-    /** 咔哒声的音量（**故意很小**：一声不吵，连起来才有节奏感）。 */
-    private static final float CRANK_VOLUME = 0.16F;
-    /** 底噪音量（更低，只当背景）。 */
-    private static final float WHIRR_VOLUME = 0.09F;
+    private static final float FIGHT_VOLUME = 0.85F;
+    private static final float TIRED_VOLUME = 0.80F;
+    private static final float RELEASE_VOLUME = 0.55F;
 
-    private static SoundEvent crank = SoundEvents.LEVER_CLICK;
-    private static SoundEvent whirr = SoundEvents.FISHING_BOBBER_RETRIEVE;
+    private static final float CAST_VOLUME = 0.90F;
+    private static final float LAND_VOLUME = 0.95F;
 
-    private static int tick;
+    /** 收线音的淡入时长（秒）。 */
+    private static final float REEL_FADE_IN_SECONDS = 0.3F;
+
+    /** 力竭判定的消抖 tick：连续 N tick 才算真力竭（状态在阈值附近会抖）。 */
+    private static final int TIRED_DEBOUNCE_TICKS = 10;
+
+    /** 放线判定消抖（tick）：单帧掉输入不切放线。 */
+    private static final int RELEASE_DEBOUNCE_TICKS = 3;
+
+    /** 当前循环音（收线 / 放线各一个，互斥）。 */
+    private static LoopSound reelLoop;
+    private static LoopSound releaseLoop;
+    /** 当前收线循环用的是哪个事件（力竭要换素材）。 */
+    private static SoundEvent reelEvent;
+
     private static float smoothDanger;
+
+    /** 连续处于力竭的 tick 数（用于消抖）。 */
+    private static int tiredTicks;
+    /** 本轮对抗是否已经进入过力竭（进入后锁定，不再切回对抗素材）。 */
+    private static boolean tiredLatched;
+    /** 连续"没在收线"的 tick 数（放线判定的消抖）。 */
+    private static int releaseHoldTicks;
 
     private ReelSounds() {
     }
 
-    /** 收线时每 tick 调一次；不在收线就什么都不做（并把节奏重置）。 */
+    /** 每 tick 调一次（{@link ClientEvents} 里）。 */
     public static void tick(ClientFishingState state) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) {
-            reset();
+            silence();
             return;
         }
-        // 只在"有会话 + 正在收线 + 不在蓄力"时响 —— 蓄力是抛投前那一段，不该有摇轮声
-        if (!state.inSession() || !state.reeling() || state.charging()) {
-            reset();
+        if (!state.inSession() || state.charging() || !lureGear(mc)) {
+            silence();
             return;
         }
-
-        // 张力平滑一下：dangerRatio 每 tick 会抖，直接拿来算音高会"唱歌"
         smoothDanger += (state.dangerRatio() - smoothDanger) * 0.25F;
 
-        tick++;
-        if (tick % CRANK_INTERVAL == 0) {
-            // 张力越高：音高越高（1.05→1.55）、略响一点（1.0→1.25 倍）
-            float pitch = 1.05F + smoothDanger * 0.50F + (float) (mc.level.random.nextFloat() * 0.06 - 0.03);
-            float volume = CRANK_VOLUME * (1.0F + smoothDanger * 0.25F);
-            mc.player.playSound(crank, volume, pitch);
+        if (!state.inFight()) {
+            silence();
+            return;
         }
-        if (tick % WHIRR_INTERVAL == 0) {
-            mc.player.playSound(whirr, WHIRR_VOLUME, 0.95F + smoothDanger * 0.20F);
+
+        // 收线循环在对抗期间**不停**：没在收线只压低音量让位给放线（输入抖动不该打断波形）。
+        tiredTicks = state.fatigued() ? tiredTicks + 1 : tiredTicks;
+        if (!tiredLatched && tiredTicks >= TIRED_DEBOUNCE_TICKS) {
+            tiredLatched = true;
+        }
+
+        SoundEvent want = tiredLatched ? ModSounds.REEL_TIRED.get() : ModSounds.REEL_FIGHT.get();
+        float baseVolume = tiredLatched ? TIRED_VOLUME : FIGHT_VOLUME;
+        float pitch = 0.98F + smoothDanger * 0.14F;
+
+        if (reelLoop == null || reelEvent != want) {
+            stopReel();
+            reelEvent = want;
+            reelLoop = new LoopSound(want, baseVolume, pitch);
+            reelLoop.fadeIn(REEL_FADE_IN_SECONDS);
+            mc.getSoundManager().play(reelLoop);
+        }
+        reelLoop.follow(state.reeling() ? baseVolume : baseVolume * 0.35F, pitch);
+
+        // 放线循环：只在"确实没在收线"时叠上去（带 3 tick 消抖）。
+        if (state.reeling()) {
+            releaseHoldTicks = 0;
+            stopRelease();
+        } else {
+            releaseHoldTicks++;
+            if (releaseHoldTicks >= RELEASE_DEBOUNCE_TICKS && releaseLoop == null) {
+                releaseLoop = new LoopSound(ModSounds.LINE_RELEASE.get(), RELEASE_VOLUME, 1.0F);
+                mc.getSoundManager().play(releaseLoop);
+            }
         }
     }
 
-    private static void reset() {
-        tick = 0;
+    /**
+     * 状态跃迁时的一次性音效（在 {@code ClientFishingState.accept} 里调）。
+     *
+     * <p>抛竿与上鱼都是"一次"：抛竿在**进入 CASTING** 时（客户端蓄力没有 CHARGING 状态），
+     * 上鱼在**进入 LANDING** 时。
+     */
+    public static void onStateChanged(int prev, int next) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.level == null) {
+            return;
+        }
+        if (!lureGear(mc)) {
+            return;   // 台钓：一声都不响
+        }
+
+        if (prev != ClientFishingState.STATE_CASTING && next == ClientFishingState.STATE_CASTING) {
+            playOnce(mc, ModSounds.LURE_CAST.get(), CAST_VOLUME, 1.0F);
+        }
+        // 浮漂落水：服务端那一份在浮漂坐标上、音量又低，客户端再补一声（UI 通道）。
+        if (prev != ClientFishingState.STATE_WAITING && next == ClientFishingState.STATE_WAITING) {
+            playOnce(mc, net.minecraft.sounds.SoundEvents.FISHING_BOBBER_SPLASH, 0.185F, 1.18F);
+        }
+        if (next == ClientFishingState.STATE_LANDING && prev != ClientFishingState.STATE_LANDING) {
+            silence();   // 上鱼瞬间把循环停掉，别和一次性音打架
+            playOnce(mc, ModSounds.LURE_LAND.get(), LAND_VOLUME, 1.0F);
+        }
+    }
+
+    /** 一次性音：走 SoundManager + UI 变体 ⇒ 与坐标无关、必定听得见。 */
+    private static void playOnce(Minecraft mc, SoundEvent event, float volume, float pitch) {
+        mc.getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(event, pitch, volume));
+    }
+
+    private static void stopReel() {
+        if (reelLoop != null) {
+            reelLoop.stopNow();
+            reelLoop = null;
+            reelEvent = null;
+        }
+    }
+
+    private static void stopRelease() {
+        if (releaseLoop != null) {
+            releaseLoop.stopNow();
+            releaseLoop = null;
+        }
+    }
+
+    /** 两个循环都停（离开对抗/会话结束/切台钓）。 */
+    public static void silence() {
+        stopReel();
+        stopRelease();
         smoothDanger = 0.0F;
+        tiredTicks = 0;
+        releaseHoldTicks = 0;
+        tiredLatched = false;
+    }
+
+    /** 手上是不是路亚竿（服务端 lureSession 之外再兜一层）。 */
+    private static boolean lureGear(Minecraft mc) {
+        if (ClientFishingState.get().lureSession()) {
+            return true;
+        }
+        return mc.player != null
+                && mc.player.getMainHandItem().getItem()
+                    instanceof com.whitecobalt.anglertackle.item.RodItem r
+                && r.rodType() == com.whitecobalt.anglertackle.item.RodItem.RodType.LURE;
     }
 }

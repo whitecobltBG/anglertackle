@@ -547,7 +547,7 @@
   "mail.anglertackle.achievement_done.line": "You unlocked the achievement [%s].",
   "mail.anglertackle.achievement_done.with_title": "\nIt also grants the title [%s] — put it on from the title panel.",
   "gui.anglertackle.ach.with_title": "· Title: %s",
-  "gui.anglertackle.term.title": "Angler Terminal",
+  "gui.anglertackle.term.title": "Titles",
   "item.anglertackle.terminal": "Angler Terminal",
   "item.anglertackle.terminal.tip": "Right-click to open: quests / codex / mailbox / achievements / titles / shop / leaderboards / league / contest",
   "item.anglertackle.terminal.tip2": "Old Ke's functions only give directions — walk to the fisherman's hut for those",
@@ -563,7 +563,6 @@
   "gui.anglertackle.term.mail.desc": "Quest, achievement and system mail — claim your rewards here.",
   "gui.anglertackle.term.ach": "Achievements",
   "gui.anglertackle.term.ach.desc": "50 one-time achievements and your progress (each mails a reward).",
-  "gui.anglertackle.term.title": "Titles",
   "gui.anglertackle.term.title.desc": "View and wear titles (some achievements also grant existing titles).",
   "gui.anglertackle.term.shop": "Shop",
   "gui.anglertackle.term.shop.desc": "Old Ke's shelves: baits, parts and purchase limits.",
@@ -1012,5 +1011,11 @@
   "tooltip.anglertackle.steamed_fish": "Cooked chunk + water bucket + sugar cane + soy sauce: light and healthy (regeneration)",
   "tooltip.anglertackle.tension_ceiling": " Tension limit x%s",
   "tooltip.anglertackle.tension_gen": " Tension build-up x%s",
-  "tooltip.anglertackle.tension_recover": " Tension recovery x%s"
+  "tooltip.anglertackle.tension_recover": " Tension recovery x%s",
+  "subtitles.anglertackle.lure_cast": "Lure cast",
+  "subtitles.anglertackle.reel_tension": "Line reeling",
+  "subtitles.anglertackle.lure_land": "Fish landed",
+  "subtitles.anglertackle.reel_fight": "Reeling under tension",
+  "subtitles.anglertackle.reel_tired": "Reeling (tired fish)",
+  "subtitles.anglertackle.line_release": "Line paid out"
 }

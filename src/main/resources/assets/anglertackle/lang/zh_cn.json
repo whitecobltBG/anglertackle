@@ -547,7 +547,7 @@
   "mail.anglertackle.achievement_done.line": "你达成了成就【%s】。",
   "mail.anglertackle.achievement_done.with_title": "\n同时授予称号【%s】—— 可以去称号面板戴上它。",
   "gui.anglertackle.ach.with_title": "· 称号：%s",
-  "gui.anglertackle.term.title": "垂纶终端",
+  "gui.anglertackle.term.title": "称号",
   "item.anglertackle.terminal": "垂纶终端",
   "item.anglertackle.terminal.tip": "右键打开：委托 / 图鉴 / 邮箱 / 成就 / 称号 / 商店 / 排行榜 / 联赛 / 比赛",
   "item.anglertackle.terminal.tip2": "商店等老柯处的功能只给指路 —— 要走到渔夫小屋找他",
@@ -563,7 +563,6 @@
   "gui.anglertackle.term.mail.desc": "委托奖励、成就奖励与系统来信都在这里领取。",
   "gui.anglertackle.term.ach": "成就",
   "gui.anglertackle.term.ach.desc": "50 条一次性成就与进度（达成即寄信）。",
-  "gui.anglertackle.term.title": "称号",
   "gui.anglertackle.term.title.desc": "查看与佩戴称号（有的成就顺带授予既有称号）。",
   "gui.anglertackle.term.shop": "商店",
   "gui.anglertackle.term.shop.desc": "老柯的货架：鱼饵、配件与限购。",
@@ -1012,5 +1011,11 @@
   "tooltip.anglertackle.steamed_fish": "熟块 + 水桶 + 甘蔗 + 酱油清蒸：清淡养生（生命恢复）",
   "tooltip.anglertackle.tension_ceiling": " 张力上限 ×%s",
   "tooltip.anglertackle.tension_gen": " 张力生成 ×%s",
-  "tooltip.anglertackle.tension_recover": " 张力回复 ×%s"
+  "tooltip.anglertackle.tension_recover": " 张力回复 ×%s",
+  "subtitles.anglertackle.lure_cast": "路亚：抛竿",
+  "subtitles.anglertackle.reel_tension": "路亚：收线",
+  "subtitles.anglertackle.lure_land": "路亚：上鱼",
+  "subtitles.anglertackle.reel_fight": "路亚：收线对抗",
+  "subtitles.anglertackle.reel_tired": "路亚：收线（力竭）",
+  "subtitles.anglertackle.line_release": "路亚：放线"
 }

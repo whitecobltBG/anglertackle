@@ -472,6 +472,24 @@ public final class FishingSession {
     }
 
     private int fatigueTicks;
+
+    /**
+     * 力竭结束后的**再进入冷却**（tick）。
+     *
+     * <p>⚠⚠ 2026-10-29（用户："力竭后还想挣扎，结果鱼力早就超过某个阈值所以立刻改回力竭状态，
+     * 听起来断断续续"）：原来的状态机是
+     * <pre>
+     *   if (fatigued) { if (--fatigueTicks <= 0) fatigued = false; }
+     *   else if (体力仍低于阈值 && ...) { fatigued = true; }
+     * </pre>
+     * 两分支是 if/else-if ⇒ 退出力竭的**下一 tick** 就又能立刻重新进入（体力没回上去时必然发生）。
+     * 结果：每 {@code fatigueTicks} 就闪一次"非力竭"，客户端 {@code fatigued} 跟着抖，
+     * 音效在 reel_tired / reel_fight 之间反复重建 —— 听感就是一顿一顿。
+     *
+     * <p>这里加一个短暂的再进入冷却：退出后至少 10 tick（0.5 秒）内不许重新点亮。
+     * 不改变"能拉多快"的平衡（只影响状态抖动的粒度），但能让 UI/音效稳定。
+     */
+    private int fatigueLockoutTicks;
     /**
      * **保底挣扎**倒计时（tick）：&gt;0 表示这条鱼这一轮还处在"保底没力竭"的窗口里
      * （用户 2026-10-06 定案，见 {@link FishSpecies#floorStruggleSeconds}）。
@@ -1159,8 +1177,12 @@ public final class FishingSession {
         // ★ 打上标记：beginWaiting 那一行"按真实距离重算"必须跳过这一竿（见字段注释）
         this.iceHoleCast = true;
 
-        level.playSound(null, this.player.blockPosition(), SoundEvents.FISHING_BOBBER_THROW,
-                SoundSource.NEUTRAL, 0.5f, 0.4f / (level.random.nextFloat() * 0.4f + 0.8f));
+        // ⚠ 2026-10-29：**只有台钓**播原版抛投声。
+        //   路亚改由客户端播用户提供的真实素材（lure_cast），两边都播会糊成两层。
+        if (rodType() == com.whitecobalt.anglertackle.item.RodItem.RodType.FLOAT) {
+            level.playSound(null, this.player.blockPosition(), SoundEvents.FISHING_BOBBER_THROW,
+                    SoundSource.NEUTRAL, 0.5f, 0.4f / (level.random.nextFloat() * 0.4f + 0.8f));
+        }
 
         FishingManager.LOGGER.info("[垂纶] 精准入洞：浮漂直接放在洞心 ({}, {}, {})",
                 hole.getX(), hole.getY() - 1, hole.getZ());
@@ -1198,8 +1220,12 @@ public final class FishingSession {
         this.castDistance = 0.0;
         this.iceHoleCast = false;      // 普通抛投：距离按浮漂真实落点算（beginWaiting 会重算）
 
-        level.playSound(null, this.player.blockPosition(), SoundEvents.FISHING_BOBBER_THROW,
-                SoundSource.NEUTRAL, 0.5f, 0.4f / (level.random.nextFloat() * 0.4f + 0.8f));
+        // ⚠ 2026-10-29：**只有台钓**播原版抛投声。
+        //   路亚改由客户端播用户提供的真实素材（lure_cast），两边都播会糊成两层。
+        if (rodType() == com.whitecobalt.anglertackle.item.RodItem.RodType.FLOAT) {
+            level.playSound(null, this.player.blockPosition(), SoundEvents.FISHING_BOBBER_THROW,
+                    SoundSource.NEUTRAL, 0.5f, 0.4f / (level.random.nextFloat() * 0.4f + 0.8f));
+        }
 
         FishingManager.LOGGER.info("[垂纶] 浮漂已生成：初速 {} 仰角 {}° → vH={} vV={}",
                 String.format("%.3f", speed), String.format("%.1f", launchDeg),
@@ -1246,8 +1272,12 @@ public final class FishingSession {
         this.castDistance = 0.0;
         this.iceHoleCast = false;      // 同 castProjectile：普通抛投不吃上一竿的"冰洞"状态
 
-        level.playSound(null, this.player.blockPosition(), SoundEvents.FISHING_BOBBER_THROW,
-                SoundSource.NEUTRAL, 0.5f, 0.4f / (level.random.nextFloat() * 0.4f + 0.8f));
+        // ⚠ 2026-10-29：**只有台钓**播原版抛投声。
+        //   路亚改由客户端播用户提供的真实素材（lure_cast），两边都播会糊成两层。
+        if (rodType() == com.whitecobalt.anglertackle.item.RodItem.RodType.FLOAT) {
+            level.playSound(null, this.player.blockPosition(), SoundEvents.FISHING_BOBBER_THROW,
+                    SoundSource.NEUTRAL, 0.5f, 0.4f / (level.random.nextFloat() * 0.4f + 0.8f));
+        }
 
         FishingManager.LOGGER.debug("[垂纶] 抛投 power={} v0={} vH={} vV={}",
                 String.format("%.2f", this.castPower), String.format("%.2f", v0),
@@ -1594,7 +1624,8 @@ public final class FishingSession {
         //   记下这次扣了多少（{@link #lastBiteCost}），提前收回时按同样的数额退回去。
         applyBiteDurabilityCost();
 
-        playSound(SoundEvents.FISHING_BOBBER_SPLASH, 0.6f, 0.7f);
+        // ⚠ 2026-10-29 用户："咬钩用原版音效，稍微高频一点" ⇒ 音高 0.7 → 1.22
+        playSound(SoundEvents.FISHING_BOBBER_SPLASH, 0.20f, 1.22f);   // 2026-10-29：原版音效再降 20%
         spawnParticles(ParticleTypes.SPLASH, 12);
     }
 
@@ -2044,7 +2075,13 @@ public final class FishingSession {
         this.player.displayClientMessage(
                 Component.translatable("message.anglertackle.retrieved_early")
                         .withStyle(ChatFormatting.GRAY), true);
-        playSound(SoundEvents.FISHING_BOBBER_RETRIEVE, 0.6f, 1.9f);
+        // 2026-10-29 用户："提前收线的声音也使用上鱼声"。
+        //   路亚 ⇒ 播 lure_land（和真正上鱼同一个素材）；台钓 ⇒ 仍用原版收线声。
+        if (rodType() == com.whitecobalt.anglertackle.item.RodItem.RodType.LURE) {
+            playSound(com.whitecobalt.anglertackle.registry.ModSounds.LURE_LAND.get(), 0.6f, 1.0f);
+        } else {
+            playSound(SoundEvents.FISHING_BOBBER_RETRIEVE, 0.6f, 1.9f);
+        }
         FishingManager.LOGGER.info("[垂纶] 提前收回（不消耗耐久）");
 
         // ⚠ 必须走 FishingManager.endSession —— 光把 state 设成 IDLE 是不够的：
@@ -2136,6 +2173,7 @@ public final class FishingSession {
         this.sprinting = false;
         this.fatigued = false;
         this.fatigueTicks = 0;
+        this.fatigueLockoutTicks = 0;
 
         // ★ 挣扎循环的节奏由**这条鱼实际的品质档**决定（体重越大档越高），
         // 而不是鱼种的上限——同种鱼里的大个体应该更折腾。
@@ -2505,11 +2543,18 @@ public final class FishingSession {
         if (this.freshStruggleTicks > 0) {
             this.freshStruggleTicks--;
         }
+        if (this.fatigueLockoutTicks > 0) {
+            this.fatigueLockoutTicks--;
+        }
         if (this.fatigued) {
             if (--this.fatigueTicks <= 0) {
                 this.fatigued = false;
+                // 退出后 10 tick 内不许再进 —— 否则体力还在阈值下会"退出→立刻重进"，
+                // 客户端看到的就是力竭状态每轮闪一下（音效跟着重建，听起来断断续续）。
+                this.fatigueLockoutTicks = 10;
             }
         } else if (this.freshStruggleTicks <= 0
+                && this.fatigueLockoutTicks <= 0
                 && !this.sprinting
                 && this.fishStamina <= this.fishStaminaMax * fatigueThresholdNow()) {
             this.fatigued = true;

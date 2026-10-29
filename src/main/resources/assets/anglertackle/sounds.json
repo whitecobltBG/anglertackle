@@ -1,0 +1,52 @@
+{
+  "lure_cast": {
+    "subtitle": "subtitles.anglertackle.lure_cast",
+    "sounds": [
+      {
+        "name": "anglertackle:lure_cast",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  },
+  "reel_fight": {
+    "subtitle": "subtitles.anglertackle.reel_fight",
+    "sounds": [
+      {
+        "name": "anglertackle:reel_fight",
+        "stream": false,
+        "attenuation_distance": 12
+      }
+    ]
+  },
+  "reel_tired": {
+    "subtitle": "subtitles.anglertackle.reel_tired",
+    "sounds": [
+      {
+        "name": "anglertackle:reel_tired",
+        "stream": false,
+        "attenuation_distance": 12
+      }
+    ]
+  },
+  "line_release": {
+    "subtitle": "subtitles.anglertackle.line_release",
+    "sounds": [
+      {
+        "name": "anglertackle:line_release",
+        "stream": false,
+        "attenuation_distance": 12
+      }
+    ]
+  },
+  "lure_land": {
+    "subtitle": "subtitles.anglertackle.lure_land",
+    "sounds": [
+      {
+        "name": "anglertackle:lure_land",
+        "stream": false,
+        "attenuation_distance": 16
+      }
+    ]
+  }
+}

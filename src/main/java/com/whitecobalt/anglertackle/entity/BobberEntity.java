@@ -375,8 +375,9 @@ public class BobberEntity extends Entity {
         this.waterAnchorX = this.getX();
         this.waterAnchorZ = this.getZ();
 
+        // ⚠ 2026-10-29 用户："落水那一刻用原版的音效稍微高频一点就行" ⇒ 音高 1.15~1.30
         this.level().playSound(null, pos, SoundEvents.FISHING_BOBBER_SPLASH,
-                SoundSource.NEUTRAL, 0.25f, 1.0f + this.random.nextFloat() * 0.4f);
+                SoundSource.NEUTRAL, 0.118f, 1.15f + this.random.nextFloat() * 0.15f);   // 2026-10-29：再降 20%
 
         if (this.level() instanceof ServerLevel serverLevel) {
             ServerPlayer owner = this.getOwnerPlayer();
@@ -491,7 +492,7 @@ public class BobberEntity extends Entity {
     public void reelIn() {
         this.setPhase((byte) 2);
         this.level().playSound(null, this.blockPosition(), SoundEvents.FISHING_BOBBER_RETRIEVE,
-                SoundSource.NEUTRAL, 0.4f, 1.0f);
+                SoundSource.NEUTRAL, 0.076f, 1.0f);   // 2026-10-29：原版收线声再降 20%   // 2026-10-29：压低原版收线声，别盖住 lure_land
         this.discard();
     }
 

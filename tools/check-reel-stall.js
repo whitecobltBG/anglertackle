@@ -375,7 +375,7 @@ const TH_USED = /this\.fishStamina <= this\.fishStaminaMax \* fatigueThresholdNo
 // 四个策略工厂里 new FightProfile(...) 的第 10 个参数就是 fatigueThreshold（0 起算 index 9）
 const arcThreshold = {};
 for (const m of fishSrc2.matchAll(
-  /private static FightProfile (\w+)\(double pull, double stamina, double tensionGain\)\s*\{\s*return new FightProfile\(([\s\S]*?)\);\s*\}/g)) {
+  /private static FightProfile (\w+)\(double pull, double stamina, double tensionGain(?:, double \w+)?\)\s*\{\s*return new FightProfile\(([\s\S]*?)\);\s*\}/g)) {
   const args = m[2].replace(/\/\/[^\n]*/g, '').split(',').map((s) => s.trim());
   arcThreshold[m[1]] = Number(args[9]);
 }
@@ -468,7 +468,7 @@ const fishSrc3 = fishSrc2;   // 这个文件里的正则都在**原始源码**�
 const FLOOR_FN = /public static double floorStruggleSeconds\(int tier, FightProfile\.Archetype arch\)/.test(fishSrc3);
 const FLOOR_SET = /this\.freshStruggleTicks = \(int\) Math\.round\(FishSpecies\.floorStruggleSeconds\(\s*this\.fishTier, this\.profile\.archetype\(\)\) \* 20\.0\);/.test(sessSrc);
 const FATIGUE_CLEARED = /this\.freshStruggleTicks = \(int\) Math\.round\([\s\S]{0,240}?this\.fatigued = false;\s*this\.fatigueTicks = 0;/.test(sessSrc);
-const FLOOR_GATED = /this\.freshStruggleTicks <= 0\s*&&\s*!this\.sprinting/.test(sessSrc);
+const FLOOR_GATED = /this\.freshStruggleTicks <= 0\s*&&\s*(?:this\.fatigueLockoutTicks <= 0\s*&&\s*)?!this\.sprinting/.test(sessSrc);
 const FLOOR_TICKED = /if \(this\.freshStruggleTicks > 0\) \{\s*this\.freshStruggleTicks--;\s*\}/.test(sessSrc);
 
 const fsFloor = (tier, arch) => FS_BASE + Math.max(0, Math.min(5, tier)) * FS_PER

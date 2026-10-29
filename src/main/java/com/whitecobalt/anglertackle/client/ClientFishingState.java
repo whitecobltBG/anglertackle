@@ -111,6 +111,7 @@ public final class ClientFishingState {
         this.prevStamina = this.stamina;
         this.prevDistance = this.distance;
 
+        int prevState = this.state;
         this.state = p.state();
         this.tension = p.tensionRatio();
         this.stamina = p.staminaRatio();
@@ -127,6 +128,10 @@ public final class ClientFishingState {
         this.serverChargeProgress = p.chargeProgress();
         this.partsDurability = p.partsDurability() == null ? new int[0] : p.partsDurability();
         this.lastReceiveTick = System.currentTimeMillis() / 50L;
+        // 抛竿/上鱼的一次性音效（只认状态跃迁，不认 tick）
+        if (prevState != this.state) {
+            ReelSounds.onStateChanged(prevState, this.state);
+        }
         // 服务端在**上鱼那一刻的最后一份快照**里给这个值 > 0 ⇒
         // 客户端据此立刻收掉视角/条子（见 inFight / tensionBarsVisible），但移动再锁这么久。
         this.movementLockTicks = Math.max(0, p.movementLockTicks());
