@@ -15,6 +15,21 @@
 //
 // 用法：node tools/gen-gameplay-config.js [--write]
 const fs = require('fs'), path = require('path');
+
+// 2026-10-29 修生成链：Config.java / Tuning.java 是 CRLF，而所有锚点字符串都写成 \n，
+// 直接 includes 永远 false（症状：找不到锚点 / 找不到定义锚点 / 残渣）。
+// 读入统一转 LF，写回按原换行还原 —— 这样既不改变工作区文件的换行，又能让锚点匹配。
+const __EOL = new Map();
+function readLF(p) {
+  const raw = fs.readFileSync(p, 'utf8');
+  const crlf = raw.includes('\r\n');
+  __EOL.set(p, crlf);
+  return crlf ? raw.replace(/\r\n/g, '\n') : raw;
+}
+function writeKeep(p, text) {
+  fs.writeFileSync(p, __EOL.get(p) ? text.replace(/\n/g, '\r\n') : text, 'utf8');
+}
+
 const ROOT = path.join(__dirname, '..');
 const WRITE = process.argv.includes('--write');
 
@@ -386,7 +401,7 @@ function injectOnce(text, anchor, payload, marker) {
 }
 
 // ---- Config.java
-let cfg = fs.readFileSync(cfgPath, 'utf8');
+let cfg = readLF(cfgPath);
 const GB = '    // ==== BEGIN 玩法数值声明 ====';
 const GE = '    // ==== END 玩法数值声明 ====';
 const DB = '        // ==== BEGIN 玩法数值定义 ====';
@@ -449,7 +464,7 @@ cfg = injectOnce(cfg, defAnchor, '\n\n' + [
     + '（差 ' + (nPushAll - nPop) + '）—— 后面所有分组会被挤到下一层，且**不会报错**');
   if (problems.length) throw new Error('Config.java 生成块结构异常：\n    - ' + problems.join('\n    - '));
 }
-fs.writeFileSync(cfgPath, cfg, 'utf8');
+writeKeep(cfgPath, cfg);
 console.log('✅ Config.java：' + decl.length + ' 个字段');
 
 // ---- Tuning.java
@@ -462,12 +477,12 @@ console.log('✅ Config.java：' + decl.length + ' 个字段');
 // 现在统一走 tools/tuning-source.js：每个块用**自己那一对** BEGIN/END 标记，
 // 块之间不共享锚点。
 const TS = require('./tuning-source.js');
-let tun = fs.readFileSync(tunPath, 'utf8');
+let tun = readLF(tunPath);
 tun = TS.writeSection(tun, 'gameReload', apply);
 tun = TS.writeSection(tun, 'gameGetter', getters);
 const tunProblems = TS.checkSections(tun);
 if (tunProblems.length) throw new Error('Tuning.java 生成块结构异常：' + tunProblems.join('；'));
-fs.writeFileSync(tunPath, tun, 'utf8');
+writeKeep(tunPath, tun);
 console.log('✅ Tuning.java：' + getters.length + ' 个 getter + ' + apply.length + ' 行热重载映射');
 console.log('✅ Tuning.java：' + getters.length + ' 个 getter + ' + apply.length + ' 行热重载映射');
 

@@ -89,7 +89,7 @@ function sweepOrphanShells(text, onlyGroup) {
   // 一刀切会把配件的地标也当空壳删掉，深度直接变负数（踩过）。
   const headRe = onlyGroup
     ? new RegExp('^\\s*\\/\\/ -+ ' + onlyGroup + '\\s*$')
-    : /^\s*\/\/ -+ (鱼种数值|配件数值)\s*$/;
+    : /^\s*\/\/ -+ (鱼种数值|配件数值|玩法数值)\s*$/;
   for (let i = 0; i < lines.length; i++) {
     if (!headRe.test(lines[i])) { out.push(lines[i]); continue; }
 
@@ -100,7 +100,7 @@ function sweepOrphanShells(text, onlyGroup) {
       if (/^\s*\/\/ -+ (鱼种数值|配件数值)\s*$/.test(l)) break;
       if (/==== (BEGIN|END)/.test(l)) break;
       // 遇到"下一个手写分组"的开头也停（那说明这个空壳一直贴到了下一组）
-      if (/^\s*\/\/ -{4,} .+$/.test(l) && !/数值/.test(l)) break;
+      if (/^\s*\/\/ -{4,} /.test(l) && !/数值/.test(l)) break;
       end++;
     }
     const seg = lines.slice(i, end).join('\n');

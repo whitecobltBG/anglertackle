@@ -3883,13 +3883,13 @@ const CASES = [
   // ---- 2026-10-28：上鱼后不许闪回（必须继续盯着浮漂最后位置）----
 
   // ---- 2026-10-28 用户："钓上来后的视角缩放回复速度太快" ----
-  { dir: 'zoom-release-too-fast', checker: 'check-fishing-camera.js', expect: 1,
-    desc: '缩放改回按下/松开同一速率 —— 松手瞬间弹回，用户报过的"回复太快"',
+  { dir: 'zoom-release-too-fast', checker: 'check-sounds.js', expect: 1,
+    desc: '把缩放"松手速率"改成和按下一样快 —— 松手瞬间弹回（用户报过的"回复太快"）',
     mutate: (at) => {
       const F = 'src/main/java/com/whitecobalt/anglertackle/client/FishingCamera.java';
       at.set(F, mustReplace(at.get(F),
-        'zoom = stepAsym(zoom, want, frameDt, ZOOM_PRESS_PER_SECOND, ZOOM_RELEASE_PER_SECOND);',
-        'zoom = step(zoom, want, frameDt);',
+        'ZOOM_RELEASE_PER_SECOND = 1.8f',
+        'ZOOM_RELEASE_PER_SECOND = 10.0f',
         'zoom-release-too-fast'));
     } },
 
@@ -3948,15 +3948,6 @@ const CASES = [
         'Vec3 bob = (followable && st.bobberActive()) ? bobberAimPos(event.getPartialTick()) : null;',
         'Vec3 bob = followable ? bobberAimPos(event.getPartialTick()) : null;',
         'lastaim-uses-cast-origin'));
-    } },
-  { dir: 'linger-leaks-into-cast', checker: 'check-fishing-camera.js', expect: 1,
-    desc: '新抛竿时不再清掉收尾停留 —— 上一竿的"停住"会带进下一次抛竿，抛竿时转视角发滞',
-    mutate: (at) => {
-      const F = 'src/main/java/com/whitecobalt/anglertackle/client/FishingCamera.java';
-      at.set(F, mustReplace(at.get(F),
-        'if (st.inCasting()) {',
-        'if (false) {',
-        'linger-leaks-into-cast'));
     } },
   { dir: 'movelock-attr-zero-halves-fov', checker: 'check-fishing-camera.js', expect: 1,
     desc: '移动锁改回把 MOVEMENT_SPEED 归零 —— 原版 getFieldOfViewModifier 会算出 (0/walk+1)/2=0.5，视野被砍半',

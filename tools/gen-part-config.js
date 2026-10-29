@@ -269,8 +269,14 @@ function stripBlock(text, begin, end) {
 //（少个 ====、多个空格），就会静默不删、每跑一次多一份；而积压的副本一旦连标记都丢了，
 // 就再也删不掉，只能不断写新修复器 —— 真实踩过，Config.java 从 1700 行涨到 2800 行。
 const { peelAll, checkStructure, sweepOrphanShells } = require('./generated-blocks.js');
+/** 本次读入的 Config.java 是否 CRLF（块内赋值、块外写回时要用）。 */
+let FILE_CRLF = false;
 {
-  const before = fs.readFileSync(configPath, 'utf8');
+  const beforeRaw = fs.readFileSync(configPath, 'utf8');
+  // 2026-10-29: Config.java 是 CRLF，而所有锚点字符串都写成 \n，直接 includes 永远 false，
+  // 会报「找不到定义锚点」。这里统一成 LF 处理，写回时再按原换行还原。
+  FILE_CRLF = beforeRaw.includes('\r\n');
+  const before = FILE_CRLF ? beforeRaw.replace(/\r\n/g, '\n') : beforeRaw;
   const r = peelAll(before);
   if (r.residue.length) {
     throw new Error('Config.java 剥除生成块后仍有残渣，不敢继续：\n  ' + r.residue.join('\n  ') +
@@ -288,9 +294,9 @@ const { peelAll, checkStructure, sweepOrphanShells } = require('./generated-bloc
                     '\n（手写部分本身的 push/pop 就不配对，先修手写部分。）');
   }
   if (r.log.length) console.log('剥除生成块：' + r.log.join('  '));
-  fs.writeFileSync(configPath, text, 'utf8');
+  fs.writeFileSync(configPath, FILE_CRLF ? text.replace(/\n/g, '\r\n') : text, 'utf8');
 }
-let cfg = fs.readFileSync(configPath, 'utf8');
+let cfg = fs.readFileSync(configPath, 'utf8').replace(/\r\n/g, '\n');
 // 声明块没有 pop；定义块的边界含收尾的 b.pop();
 const PART_DECL_END = '    // ==== END 配件数值声明 ====';
 const PART_DEF_END = '        // ==== END 配件数值定义 ====\n        b.pop();';
@@ -323,7 +329,7 @@ cfg = cfg.replace(defAnchor, () => defAnchor + '\n\n' + [
   // 且 TOML 变成 [partsStats.fishStats]，那一组的热重载全部失效。
   // 所以生成块 = BEGIN 标记 .. END 标记 .. b.pop(); 这三行一起删、一起插，才不会被挤开。
   '\n        // ==== END 配件数值定义 ====\n        b.pop();');
-fs.writeFileSync(configPath, cfg, 'utf8');
+fs.writeFileSync(configPath, FILE_CRLF ? cfg.replace(/\n/g, '\r\n') : cfg, 'utf8');
 console.log('✅ Config.java：' + decl.length + ' 个字段');
 
 // ---------------------------------------------------------------- Tuning.java

@@ -12,6 +12,21 @@
 //
 // 幂等：所有注入都走"标记块替换"（先删旧块再插新块），可以反复运行。
 const fs = require('fs'), path = require('path');
+
+// 2026-10-29 修生成链：Config.java / Tuning.java 是 CRLF，而所有锚点字符串都写成 \n，
+// 直接 includes 永远 false（症状：找不到锚点 / 找不到定义锚点 / 残渣）。
+// 读入统一转 LF，写回按原换行还原 —— 这样既不改变工作区文件的换行，又能让锚点匹配。
+const __EOL = new Map();
+function readLF(p) {
+  const raw = fs.readFileSync(p, 'utf8');
+  const crlf = raw.includes('\r\n');
+  __EOL.set(p, crlf);
+  return crlf ? raw.replace(/\r\n/g, '\n') : raw;
+}
+function writeKeep(p, text) {
+  fs.writeFileSync(p, __EOL.get(p) ? text.replace(/\n/g, '\r\n') : text, 'utf8');
+}
+
 const ROOT = path.join(__dirname, '..');
 const WRITE = process.argv.includes('--write');
 
@@ -194,7 +209,7 @@ function assertSingle(text, marker, label) {
 // 少一个 ==== 都会导致静默不删、每跑一次多一份。
 const { stripExact, checkStructure, sweepOrphanShells } = require('./generated-blocks.js');
 {
-  let cur = fs.readFileSync(cfgPath, 'utf8');
+  let cur = readLF(cfgPath);
   let peeled = 0;
   for (let guard = 0; guard < 50; guard++) {
     // ⚠️ 地标要用**内容**来界定，不能把 BEGIN 标记当边界：
@@ -237,9 +252,9 @@ const { stripExact, checkStructure, sweepOrphanShells } = require('./generated-b
                     '\n  正常应剩下"手写分组 + 配件数值块"，两者都自带收尾 pop。\n' +
                     '  先跑 gen-part-config.js 重建配件块。');
   }
-  fs.writeFileSync(cfgPath, cur, 'utf8');
+  writeKeep(cfgPath, cur);
 }
-let cfg = fs.readFileSync(cfgPath, 'utf8');
+let cfg = readLF(cfgPath);
 // ── 生成块的边界：BEGIN 标记 .. END 标记 .. b.pop(); 三行**作为一个整体** ──
 //
 // ⚠️ 这三行必须一起删、一起插，`b.pop();` 不能被留在块外。
@@ -293,19 +308,19 @@ cfg = injectOnce(cfg, defAnchor, '\n\n' + [
 // 声明块也断言：它同样是一次性注入，重复了就是 strip 没匹配上
 assertSingle(cfg, DECL_BEGIN, '鱼种数值声明块');
 assertSingle(cfg, FISH_BEGIN, '鱼种数值定义块');
-fs.writeFileSync(cfgPath, cfg, 'utf8');
+writeKeep(cfgPath, cfg);
 console.log('✅ Config.java：' + decl.length + ' 个字段');
 
 // ---------------------------------------------------------------- Tuning.java
 //
 // 同 gen-part-config：只登记，不写盘（见那边的注释）。
 const TS = require('./tuning-source.js');
-let tun = fs.readFileSync(tunPath, 'utf8');
+let tun = readLF(tunPath);
 tun = TS.writeSection(tun, 'fishReload', apply);
 tun = TS.writeSection(tun, 'fishGetter', getters);
 const tunProblems = TS.checkSections(tun);
 if (tunProblems.length) throw new Error('Tuning.java 生成块结构异常：' + tunProblems.join('；'));
-fs.writeFileSync(tunPath, tun, 'utf8');
+writeKeep(tunPath, tun);
 console.log('✅ Tuning.java：' + getters.length + ' 个 getter + ' + apply.length + ' 行热重载映射');
 
 // ---------------------------------------------------------------- FishTuning.java
@@ -317,7 +332,7 @@ console.log('✅ Tuning.java：' + getters.length + ' 个 getter + ' + apply.len
 const FT_BEGIN = '            // ==== BEGIN 生成区（gen-fish-config.js，勿手改）====';
 const FT_END = '            // ==== END 生成区 ====';
 {
-  let ft = fs.readFileSync(fishTunPath, 'utf8');
+  let ft = readLF(fishTunPath);
   const hasBegin = ft.includes(FT_BEGIN);
   const hasEnd = ft.includes(FT_END);
   if (!hasBegin || !hasEnd) {
@@ -337,8 +352,8 @@ const FT_END = '            // ==== END 生成区 ====';
     FT_END.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
   // 用替换函数（不做 $ 展开）
   ft = ft.replace(re, () => FT_BEGIN + '\n' + reads.join('\n\n') + '\n' + FT_END);
-  fs.writeFileSync(fishTunPath, ft, 'utf8');
-  const back = fs.readFileSync(fishTunPath, 'utf8');
+  writeKeep(fishTunPath, ft);
+  const back = readLF(fishTunPath);
   if (!back.includes(FT_BEGIN) || !back.includes(FT_END) || !/next\.put\("crucian_carp"/.test(back)) {
     throw new Error('FishTuning.java 写回后自检失败');
   }

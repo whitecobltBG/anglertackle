@@ -1,22 +1,21 @@
 /*
- * check-reel-sound.js —— 收线声音的三条断言（用户 2026-10-05："路亚收线时没有声音"）。
+ * check-reel-sound.js —— 收线/放线声音的接线断言（2026-10-29 重写）。
  *
- * 为什么值得守：
- *   ① **不许往仓库里塞音频**。我们用的是原版音效（\`SoundEvents.LEVER_CLICK\` +
- *      \`SoundEvents.FISHING_BOBBER_RETRIEVE\`），一旦有人改成自带的 ogg，
- *      体积、授权、资源包冲突三件事一起上门 —— 那条路要走就得有人明确决定。
- *   ② **不许常驻响**。只允许"有会话 + 正在收线 + 不在蓄力"时出声；
- *      写成"只要拿着竿就响"会让玩家在岸上站着都哗啦哗啦。
- *   ③ **音量必须小**。咔哒是节奏不是噪音，单声音量上限 0.25。
+ * 历史：这个检查器原本守"只用原版音效、音量 ≤ 0.25"（用户 2026-10-05 的口径）。
+ * 2026-10-29 用户改了口径：**用他录的真实素材**（5 段视频 → ogg），
+ * 于是旧的三条（不许有音频文件 / 只用 SoundEvents / 音量 0.25）全部失效，
+ * 这里按新设计重写；素材的"三处同名、真的是 Ogg、字幕齐全"由 check-sounds.js 守。
  *
- * 用法：node tools/check-reel-sound.js
+ * 现在守：
+ *   ① 五个自定义音效都用上了；
+ *   ② 只在**路亚场次**里响（台钓静音）；
+ *   ③ 收线/放线是受控循环（LoopSound + stopNow），不是反复 playSound；
+ *   ④ 确实被客户端 tick 调用（否则写了也不响 —— 用户 2026-10-05 报过这个症状）。
  */
 const fs = require('fs');
 const path = require('path');
 const ROOT = process.env.ATL_ROOT ? path.resolve(process.env.ATL_ROOT) : path.join(__dirname, '..');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
-// ⚠ 判据必须去掉注释：ReelSounds 的说明里就写着 "sounds.json"（讲原版音效从哪查的），
-//   不 strip 的话这条断言会把自己的注释当成"引用了自带音频"，误报一次（踩过）。
 const { stripComments } = require('./java-source.js');
 const readCode = (p) => stripComments(read(p));
 const exists = (p) => fs.existsSync(path.join(ROOT, p));
@@ -33,39 +32,33 @@ if (!exists(SND)) {
   bad('缺少 ' + SND + '（收线声音的实现）');
 } else {
   const s = readCode(SND);
-  // ① 只用原版音效
-  const custom = [...s.matchAll(/SoundEvents\.([A-Z_0-9]+)/g)].map((m) => m[1]);
-  if (!custom.length) bad('ReelSounds 里一个 SoundEvents 都没用 —— 是不是改成自带音频了？');
-  else if (/sounds\.json|ResourceLocation\.(withDefaultNamespace|parse)\("anglertackle:/.test(s)) {
-    bad('ReelSounds 引用了自己的音频资源 —— 本项目**不加**音频文件（体积/授权/资源包冲突），要用原版音效');
-  } else ok('只用原版音效：' + [...new Set(custom)].join(', '));
 
-  // ①b 仓库里确实没有音频
-  const sndDir = 'src/main/resources/assets/anglertackle/sounds';
-  if (exists(sndDir) && fs.readdirSync(path.join(ROOT, sndDir)).length) {
-    bad('仓库里出现了 assets/anglertackle/sounds/ 内容 —— 收线声音不该走这条路');
-  } else ok('仓库里没有任何自带的音频文件（零授权风险）');
+  const wants = ['LURE_CAST', 'REEL_FIGHT', 'REEL_TIRED', 'LINE_RELEASE', 'LURE_LAND'];
+  const missing = wants.filter((w) => !new RegExp('ModSounds\\.' + w + '\\.get\\(\\)').test(s));
+  if (missing.length) bad('这些自定义音效没被用到：' + missing.join(', '));
+  else ok('五个自定义音效全部接线（抛竿/对抗收线/力竭收线/放线/上鱼）');
 
-  // ② 只在收线时响
-  if (!/!state\.inSession\(\)\s*\|\|\s*!state\.reeling\(\)/.test(s.replace(/\s+/g, ' '))) {
-    bad('没有"非会话/未收线就跳过"的判断 —— 会在岸上站着也响');
-  } else ok('有门禁：不在会话中、或没在收线时不发声');
+  if (/lureSession\(\)/.test(s) && /RodType\.LURE/.test(s)) {
+    ok('有路亚门禁：服务端 lureSession 或手持路亚竿才响（台钓静音）');
+  } else bad('没有路亚门禁 —— 台钓也会响（用户明确要求台钓不要这些声音）');
 
-  // ③ 音量上限
+  if (/new LoopSound\(/.test(s) && /\.stopNow\(\)/.test(s)) {
+    ok('收线/放线用受控循环（LoopSound + stopNow），不是反复 playSound');
+  } else bad('收线声音不是受控循环 —— 会叠层、切换有延迟（用户报过）');
+
   const vols = [...s.matchAll(/([A-Z_]*VOLUME)\s*=\s*([\d.]+)F/g)].map((m) => ({ k: m[1], v: Number(m[2]) }));
-  const tooLoud = vols.filter((x) => x.v > 0.25);
-  if (tooLoud.length) bad('音量过大：' + tooLoud.map((x) => x.k + '=' + x.v).join(', ') + '（上限 0.25，咔哒是节奏不是噪音）');
-  else ok('音量都在 0.25 以下：' + vols.map((x) => x.k + '=' + x.v).join(', '));
+  const tooLoud = vols.filter((x) => x.v > 1.0);
+  if (tooLoud.length) bad('音量超过 1.0：' + tooLoud.map((x) => x.k + '=' + x.v).join(', '));
+  else ok('音量都是具名常量且 ≤ 1.0：' + vols.map((x) => x.k + '=' + x.v).join(', '));
 }
 
-// ④ 确实被客户端 tick 调用了（否则写了也不响 —— 正是用户这次报的症状）
 if (!exists(EV)) bad('缺少 ' + EV);
 else if (!/ReelSounds\.tick\(/.test(read(EV))) bad('ClientEvents 没有调用 ReelSounds.tick(...) —— 声音永远不会响');
 else ok('ClientEvents 的客户端 tick 里确实调了 ReelSounds.tick(state)');
 
 console.log('');
 if (fail === 0) {
-  console.log('✅ 收线声音检查通过：原版音效、只在收线时响、音量克制、确实接进了客户端 tick');
+  console.log('✅ 收线声音检查通过：五段素材都接上、只在路亚里响、受控循环、确实进了客户端 tick');
 } else {
   console.log('❌ 收线声音检查失败：' + fail + ' 项');
 }

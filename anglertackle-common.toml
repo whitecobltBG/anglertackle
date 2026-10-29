@@ -3502,7 +3502,7 @@
 	#实际强度还会乘以一个约 0.25 秒的渐入，避免刚中鱼时镜头猛甩。
 	# Default: 0.9
 	# Range: 0.0 ~ 1.0
-	hookCameraFollowStrength = 1.0
+	hookCameraFollowStrength = 1
 	#收线时视野缩到原来的百分之几 / Zoom while reeling
 	#⚠ **相对当前 FOV 相乘**，不是写死一个数值 —— 所以它是叠在其它视野效果
 	#之上的"再来一点"，松手就回到原来的水平（用户口径："松开放线回到上鱼时的放大水平"）。

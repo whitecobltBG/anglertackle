@@ -211,6 +211,16 @@ if (exists(csPath) && /ReelSounds\.onStateChanged\(prevState, this\.state\)/.tes
 }
 
 
+// 缩放"松手比按下慢"（2026-10-28 用户："钓上来后的视角缩放回复速度太快"）
+{
+  const cam = strip(read('src/main/java/com/whitecobalt/anglertackle/client/FishingCamera.java'));
+  const press = /ZOOM_PRESS_PER_SECOND = 10\.0f/.test(cam);
+  const release = /ZOOM_RELEASE_PER_SECOND = 1\.8f/.test(cam);
+  if (press && release) ok('缩放按下 10/s、松手 1.8/s（松手明显更慢）');
+  else fail('缩放的按下/松开速率不对（press=' + press + ' release=' + release + '）');
+}
+
+
 console.log('');
 console.log(bad === 0 ? '✅ 路亚音效接线正确（三处同名、文件真实、播放点齐全）' : '❌ 音效检查未通过（' + bad + ' 项）');
 process.exitCode = bad === 0 ? 0 : 1;
