@@ -71,7 +71,7 @@ public record RodStats(
                 PartComposer.pullStruggle(reel),
                 PartComposer.damping(reel),
                 PartComposer.lineLength(line),
-                PartComposer.hookWindowBonus(hook),
+                0.0,   // 鱼钩已移除：提竿窗口不再有配件加成（只剩 hookWindowBase）
                 floorDrainPerSec,
                 rod.maxWeightKg(),
                 rod

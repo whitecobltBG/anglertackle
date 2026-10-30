@@ -48,7 +48,7 @@ public final class RodModManager {
     public static final int SLOT_ROD = 0;
     public static final int SLOT_LINE = 1;
     public static final int SLOT_REEL = 2;
-    public static final int SLOT_HOOK = 3;
+    public static final int SLOT_SINKER = 3;
     public static final int SLOT_LURE = 4;
     /** @deprecated 浮漂槽已移除，编号保留以免错位。 */
     @Deprecated
@@ -57,7 +57,7 @@ public final class RodModManager {
 
     /** 槽位序号 → 翻译键后缀。 */
     private static final String[] SLOT_KEYS =
-            {"rod", "line", "reel", "hook", "lure", "float", "bait"};
+            {"rod", "line", "reel", "sinker", "lure", "float", "bait"};
 
     private RodModManager() {
     }
@@ -67,7 +67,7 @@ public final class RodModManager {
     public static int[] slotsFor(RodItem.RodType type) {
         return type == RodItem.RodType.FLOAT
                 ? new int[]{SLOT_BAIT}                              // 台钓：只有鱼饵
-                : new int[]{SLOT_LINE, SLOT_REEL, SLOT_HOOK, SLOT_LURE};   // 路亚：线/轮/钩/拟饵
+                : new int[]{SLOT_LINE, SLOT_REEL, SLOT_SINKER, SLOT_LURE};   // 路亚：线/轮/铅锤/拟饵
     }
 
     /** 槽位是否对这根竿生效。 */
@@ -85,7 +85,7 @@ public final class RodModManager {
         return switch (slot) {
             case SLOT_LINE -> TacklePartItem.Slot.LINE.ordinal();
             case SLOT_REEL -> TacklePartItem.Slot.REEL.ordinal();
-            case SLOT_HOOK -> TacklePartItem.Slot.HOOK.ordinal();
+            case SLOT_SINKER -> TacklePartItem.Slot.SINKER.ordinal();
             // SLOT_FLOAT 没有对应配件种类了（浮漂已删除），落到 default
             default -> -1;
         };
@@ -335,7 +335,7 @@ public final class RodModManager {
         return switch (slot) {
             case SLOT_LINE -> p.line();
             case SLOT_REEL -> p.reel();
-            case SLOT_HOOK -> p.hook();
+            case SLOT_SINKER -> p.hook();
             case SLOT_LURE -> p.lure();
             // SLOT_FLOAT 已废（浮漂槽移除）→ 落到 default 返回空
             case SLOT_BAIT -> p.bait();
@@ -354,7 +354,7 @@ public final class RodModManager {
         ModDataComponents.RodParts next = switch (slot) {
             case SLOT_LINE -> p.withLine(store);
             case SLOT_REEL -> p.withReel(store);
-            case SLOT_HOOK -> p.withHook(store);
+            case SLOT_SINKER -> p.withHook(store);
             case SLOT_LURE -> p.withLure(store);
             case SLOT_BAIT -> p.withBait(store);
             default -> p;
@@ -367,7 +367,7 @@ public final class RodModManager {
         return switch (slot) {
             case SLOT_LINE -> p.lineStack();
             case SLOT_REEL -> p.reelStack();
-            case SLOT_HOOK -> p.hookStack();
+            case SLOT_SINKER -> p.hookStack();
             case SLOT_LURE -> p.lureStack();
             case SLOT_BAIT -> p.baitStack();
             default -> ItemStack.EMPTY;

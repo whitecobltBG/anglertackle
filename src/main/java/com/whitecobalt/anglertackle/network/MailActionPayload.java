@@ -36,6 +36,15 @@ public record MailActionPayload(int action, int mailId) implements CustomPacketP
     public static final int CLAIM = 2;
     /** 全部已读。 */
     public static final int READALL = 3;
+    /**
+     * **一键领取**：把所有"有附件且未领"的邮件一次领完。
+     *
+     * <p>⚠ 只领**带附件**的信：`quest_accept` 这类"动作型"邮件（点按钮=接委托）
+     * 有玩家意图，不能被批量操作代替，仍要他自己点。
+     * 单封领取的语义不复制一份 —— 批量只是把 {@code MailService.claim} 循环调用，
+     * 所以"过期作废 / 背包满回滚 / 鱼币同步"这些规则天然一致。
+     */
+    public static final int CLAIM_ALL = 4;
 
     public static final CustomPacketPayload.Type<MailActionPayload> TYPE =
             new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(

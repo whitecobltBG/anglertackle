@@ -30,8 +30,8 @@ public class TacklePartItem extends Item implements HasQuality {
         LINE,
         /** ③ 渔轮：回拉速度（常态/挣扎）、体力削减、压制阻尼 */
         REEL,
-        /** ④ 鱼钩：提竿窗口（唯一实现的属性） */
-        HOOK,
+        /** ④ 铅锤：只影响"哪一水层的鱼更容易上钩"（仅路亚可用） */
+        SINKER,
         /** ⑤ 拟饵：路亚专用，决定能钓什么体型与饵料下限（有耐久，可重复使用） */
         LURE
     }
@@ -178,10 +178,19 @@ public class TacklePartItem extends Item implements HasQuality {
                             String.format("%.1f", floorDrain)).withStyle(ChatFormatting.AQUA));
                 }
             }
-            case HOOK -> {
-                // 鱼钩只剩这一个属性。曾经还显示"大个体概率 / 夜间效率"，
-                // 但那两个字段**没有任何实现**——显示出来只是骗玩家，已删。
-                lines.add(line("hook_window", stats.hookWindowBonus()));
+            case SINKER -> {
+                // 只列"真的改了的层"：全 1.0 的层写出来只会让 tooltip 变长。
+                if (this instanceof com.whitecobalt.anglertackle.item.SinkerItem sinker) {
+                    for (com.whitecobalt.anglertackle.fishing.FishLayers.Layer layer
+                            : com.whitecobalt.anglertackle.fishing.FishLayers.Layer.values()) {
+                        double mult = sinker.bonus(layer);
+                        if (mult != 1.0) {
+                            lines.add(Component.translatable("tooltip.anglertackle.sinker_bonus",
+                                    Component.translatable(layer.langKey()),
+                                    Math.round((mult - 1.0) * 100.0)));
+                        }
+                    }
+                }
             }
             case LURE -> {
                 lines.add(durabilityLine(stack));

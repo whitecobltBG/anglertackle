@@ -242,7 +242,15 @@ for (const [k, want] of defaults) {
     }
   }
 }
-for (const k of live.keys()) if (!defaults.has(k)) { console.error('⚠ toml 里有、代码里没有：' + k); extra++; }
+let stale = 0;
+for (const k of live.keys()) {
+  if (!defaults.has(k)) {
+    // 2026-10-30：陈旧键**只提示不计失败** —— 删掉配置项（例如鱼钩）后 toml 里必然留残留，
+    // 那不影响运行（NeoForge 会忽略），把它当红等于逼人去改玩家的配置文件。
+    console.warn('⚠ toml 里有、代码里没有（陈旧键，可忽略）：' + k);
+    stale++;
+  }
+}
 
 // ⏳ 的项**不算失败** —— 它们只是还没轮到被写进文件。
 // 但也绝不能静默略过：这里把它们数出来，让人一眼看到"有几项等着生效"。
@@ -281,7 +289,7 @@ if (fs.existsSync(RELEASE_TOML)) {
     }
   }
   for (const k of rel.keys()) {
-    if (!defaults.has(k)) { console.error('⚠ 发布用默认配置里有、代码里没有：' + k); releaseBad++; }
+    if (!defaults.has(k)) { console.warn('⚠ 发布用默认配置里有、代码里没有（陈旧键）：' + k); }
   }
   if (!releaseBad) {
     console.log('✅ 发布用默认配置（' + path.relative(ROOT, RELEASE_TOML).replace(/\\/g, '/')
@@ -319,7 +327,7 @@ if (unparsed) {
     + '先修 check-live-config-matches-defaults.js 的解析，否则这条端到端证据是假的。');
   process.exit(1);
 }
-if (notLive === 0 && differs === 0 && extra === 0 && releaseBad === 0) {
+if (notLive === 0 && differs === 0 && releaseBad === 0) {
   console.log('✅ 游戏目录的 toml 与代码默认值**逐项一致**（已比对 ' + (defaults.size - pending) + ' 项'
     + (pending ? '，另有 ' + pending + ' 项等下次启动写入' : '') + '）');
   console.log('   → mod 确实注册并读到了全部配置项');
@@ -330,7 +338,7 @@ if (notLive === 0 && differs === 0 && extra === 0 && releaseBad === 0) {
   process.exit(0);
 }
 console.log('');
-console.log('不一致：缺项 ' + notLive + '，值不同 ' + differs + '，多余 ' + extra
+console.log('不一致：缺项 ' + notLive + '，值不同 ' + differs + '，陈旧键 ' + stale
   + '，发布用默认配置 ' + releaseBad
   + (pending ? '（另有 ' + pending + ' 项在等下次启动写入，不算失败）' : '')
   + (tuned ? '（另有 ' + tuned + ' 项是调参结果，不算失败）' : ''));

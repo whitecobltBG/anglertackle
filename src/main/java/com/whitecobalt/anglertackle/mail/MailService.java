@@ -275,6 +275,56 @@ public final class MailService {
 
     // ---------------------------------------------------------------- 领
     /**
+     * **一键领取**：把所有"有附件且未领、未过期"的邮件一次领完。
+     *
+     * <p>只做循环，不重写规则：每一封都走 {@link #claim} ⇒
+     * "过期作废 / 背包满整封回滚 / 鱼币同步 / 标记已领"全部与单封完全一致。
+     * 碰到 {@link Claim#BAG_FULL} 就**停下**（后面的也塞不进，继续跑只会白试），
+     * 已领的在前面几封里，返回计数让调用方提示"还有几封没领"。
+     *
+     * @return 领取结果（领了几封 / 鱼币 / 物品件数 / 是否因背包满中断）
+     */
+    public static ClaimAll claimAll(ServerPlayer player) {
+        MailBox box = PlayerData.getMails(player);
+        int mails = 0, items = 0;
+        long coins = 0L;
+        boolean bagFull = false;
+
+        // 先快照 id 列表：claim() 会改写 MailBox，边遍历边改会踩到 ConcurrentModification 一类的坑
+        List<Integer> ids = new ArrayList<>();
+        for (MailEntry m : box.mails()) {
+            if (m.hasAttachment() && !m.claimed()) {
+                ids.add(m.id());
+            }
+        }
+
+        for (int id : ids) {
+            MailEntry before = PlayerData.getMails(player).byId(id);
+            if (before == null) {
+                continue;
+            }
+            int itemCount = before.items().size();
+            long coinCount = before.coins();
+            Claim r = claim(player, id);
+            if (r == Claim.OK) {
+                mails++;
+                items += itemCount;
+                coins += coinCount;
+            } else if (r == Claim.BAG_FULL) {
+                bagFull = true;
+                break;
+            }
+            // NOTHING（无附件）/ ALREADY / EXPIRED / NOT_FOUND：跳过，不计数
+        }
+        return new ClaimAll(mails, items, coins, bagFull);
+    }
+
+    /** 一键领取的结果。 */
+    public record ClaimAll(int mails, int items, long coins, boolean bagFull) {
+    }
+
+
+    /**
      * 领取一封邮件的附件 —— **服务端动作**，幂等。
      *
      * <p>步骤：找信 → 判过期 → 判是否已领 → 发鱼币 → 塞物品（**塞不下就整封回滚并拒绝**）→ 标记已领。

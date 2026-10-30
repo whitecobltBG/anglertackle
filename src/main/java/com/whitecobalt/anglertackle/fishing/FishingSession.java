@@ -1613,10 +1613,10 @@ public final class FishingSession {
             checkOverCapacity();
         }
 
-        // 提竿窗口 = 基础秒数 + 鱼钩/鱼竿加成（下限由 config 兜住）
+        // 提竿窗口 = 基础秒数（下限由 config 兜住）。
+        // 2026-10-30：鱼钩已删除 ⇒ 这里不再有"配件加成"这一项。
         var hookCfg = com.whitecobalt.anglertackle.Config.INSTANCE;
-        double windowSeconds = Math.max(hookCfg.hookWindowMin.get(),
-                hookCfg.hookWindowBase.get() + this.rodStats.hookWindowBonus());
+        double windowSeconds = Math.max(hookCfg.hookWindowMin.get(), hookCfg.hookWindowBase.get());
         this.hookWindowTotal = (int) Math.round(windowSeconds * 20.0);
         this.hookWindowTicks = hookWindowTotal;
 

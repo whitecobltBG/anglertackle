@@ -73,7 +73,6 @@ const CHAIN = [
   ['pullStruggle',    'pullStruggle',    'pullStruggle',    ['FishingSession.java']],
   ['staminaDrain',    'staminaDrain',    'staminaDrain',    ['FishingSession.java']],
   ['damping',         'damping',         'damping',         ['FishingSession.java']],
-  ['hookWindowBonus', 'hookWindowBonus', 'hookWindowBonus', ['FishingSession.java']],
 ];
 
 /** 在 text 里找第一个匹配，返回 "行号: 内容" */

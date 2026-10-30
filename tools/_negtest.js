@@ -25,6 +25,7 @@ const OUT = path.join(ROOT, 'build', 'negtest');
 //   （把模板池的内容当成了结构 JSON，于是 placement 是 undefined）。
 //   所以下面所有用例都通过 at.get('文件名') 取，取不到或有歧义就报错。
 const FILES = [
+  'src/main/java/com/whitecobalt/anglertackle/network/MailActionPayload.java',
   // 2026-10-29 音效：负例要改 sounds.json ⇒ 必须进副本（否则读真仓库那份，改坏也不红）
   'src/main/resources/assets/anglertackle/sounds.json',
   'src/main/java/com/whitecobalt/anglertackle/registry/ModSounds.java',
@@ -507,6 +508,8 @@ const FILES = [
   'src/main/java/com/whitecobalt/anglertackle/client/screen/QuestScreen.java',
   'src/main/java/com/whitecobalt/anglertackle/client/ClientQuests.java',
   'src/main/java/com/whitecobalt/anglertackle/event/QuestEvents.java',
+  'src/main/java/com/whitecobalt/anglertackle/fishing/FishLayers.java',
+  'tools/fish-layers.json',
 ];
 
 // 只有部分用例需要的额外文件（带 * 通配），例如 21 份调研资料与 21 张贴图。
@@ -3112,8 +3115,10 @@ const CASES = [
     createFiles: [['live-config.toml',
       '[bite]\n\tminWaitSeconds = 10\n\tmaxWaitSeconds = 14\n\thardCapSeconds = 30\n']] },
 
-  { dir: 'livecfg-extra', checker: 'check-live-config-matches-defaults.js', expect: 1,
-    desc: 'toml 里有一项代码里没有的键（代码删了项、文件里还留着）',
+  // 2026-10-30：**陈旧键不再算红** —— 删掉配置项（例如鱼钩）后 toml 里必然留残留，
+  //   NeoForge 会忽略未知键；把它当失败等于逼人去改玩家配置文件。
+  { dir: 'livecfg-extra', checker: 'check-live-config-matches-defaults.js', expect: 0,
+    desc: '对照组：toml 里有代码里没有的键（陈旧键）—— 只提示，不算失败',
     createFiles: [['live-config.toml',
       '[bite]\n\tminWaitSeconds = 10\n\n[zzz_ghost]\n\tnope = 1\n']] },
 
@@ -3912,6 +3917,50 @@ const CASES = [
         '                && this.fatigueLockoutTicks <= 0\n',
         '\n',
         'fatigue-lockout-removed'));
+    } },
+
+  // ---- 2026-10-30：一键领取只准领带附件的信 ----
+
+  // ---- 2026-10-30：底部按钮不许重叠（翻页键压住"全部已读"）----
+
+  // ---- 2026-10-30：窝料渲染距离不许退回"包围盒×64"那种十几格 ----
+
+  // ---- 2026-10-30：水层生成物不许手改（手改会让"改 json 不生成"悄悄生效）----
+  { dir: 'fish-layer-handedited', checker: 'check-fish-layers.js', expect: 1,
+    desc: '直接手改 FishLayers.java 里一条鱼的层 —— 生成物与 json 脱钩，之后改 json 不重跑生成器也不报错',
+    mutate: (at) => {
+      const F = 'src/main/java/com/whitecobalt/anglertackle/fishing/FishLayers.java';
+      at.set(F, mustReplace(at.get(F),
+        'FISH.put("crucian_carp", Layer.NEAR_BOTTOM);',
+        'FISH.put("crucian_carp", Layer.SURFACE);',
+        'fish-layer-handedited'));
+    } },
+  { dir: 'chum-render-distance-too-small', checker: 'check-chum-render-distance.js', expect: 1,
+    desc: '把窝料渲染距离改成 16 格 —— 扔远一点就看不见（用户报的正是这个）',
+    mutate: (at) => {
+      const F = 'src/main/java/com/whitecobalt/anglertackle/entity/ChumEntity.java';
+      at.set(F, mustReplace(at.get(F),
+        'return distSqr < 128.0 * 128.0;',
+        'return distSqr < 16.0 * 16.0;',
+        'chum-render-distance-too-small'));
+    } },
+  { dir: 'mail-footer-buttons-overlap', checker: 'check-mail-claim-all.js', expect: 1,
+    desc: '把【全部已读】挪回 left+6 —— 和 6~24 的翻页键叠在一起（用户截图反馈的"翻页键与已读重叠"）',
+    mutate: (at) => {
+      const F = 'src/main/java/com/whitecobalt/anglertackle/client/screen/MailScreen.java';
+      at.set(F, mustReplace(at.get(F),
+        '.bounds(left + 28, by, 80, 18)',
+        '.bounds(left + 6, by, 80, 18)',
+        'mail-footer-buttons-overlap'));
+    } },
+  { dir: 'claimall-includes-action-mails', checker: 'check-mail-claim-all.js', expect: 1,
+    desc: '一键领取的范围去掉"有附件"限制 —— 会把 quest_accept 这类"点按钮=接委托"的邮件替玩家执行掉',
+    mutate: (at) => {
+      const F = 'src/main/java/com/whitecobalt/anglertackle/mail/MailService.java';
+      at.set(F, mustReplace(at.get(F),
+        'if (m.hasAttachment() && !m.claimed()) {',
+        'if (!m.claimed()) {',
+        'claimall-includes-action-mails'));
     } },
   { dir: 'sound-json-cross-namespace', checker: 'check-sounds.js', expect: 1,
     desc: 'sounds.json 里把 anglertackle:lure_cast 写成 minecraft:lure_cast —— 注册表/键/文件名三处不一致，进游戏静音但日志一声不吭',

@@ -21,7 +21,7 @@ console.log('=== 回合数断言（红档 ≥4 / 金档 ≥2）===\n');
 const parts = S.readParts();
 const rod = S.readRod('gold');
 const purple = S.GEAR_PRESETS.purple;
-const gear = S.composeStats(rod, parts[purple.line], parts[purple.reel], parts.barbed_hook);
+const gear = S.composeStats(rod, parts[purple.line], parts[purple.reel], parts.sinker_g8);
 console.log('  基准装备：金竿 + ' + purple.cn + '（与用户口径一致 ✓）');
 console.log('  策略：good（正常玩家）· 每条鱼 7 个种子取中位\n');
 

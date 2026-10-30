@@ -31,7 +31,10 @@ if (!fs.existsSync(bakPath)) {
 
 // ---------------------------------------------------------------- 1. 从备份抽"真值"
 const truth = new Map();   // 配置项名 -> 期望默认值（数字）
-for (const p of parseParts(fs.readFileSync(bakPath, 'utf8'), { literals: true })) {
+// 2026-10-30：鱼钩已删除，备份里那两件不再参与默认值比对。
+const REMOVED = new Set(['plain_hook', 'barbed_hook']);
+for (const p of parseParts(fs.readFileSync(bakPath, 'utf8'), { literals: true })
+    .filter((x) => !REMOVED.has(x.id))) {
   const prefix = shortId(p.id);
   truth.set(camel(prefix + '_durability'), p.durability);
   p.keys.forEach((k, i) => truth.set(camel(prefix + '_' + k), p.values[i]));

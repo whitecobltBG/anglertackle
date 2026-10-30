@@ -802,10 +802,6 @@ public final class Tuning {
         putDoubleValue(flat, "partsStats.heavyStaminaDrain", c.heavyStaminaDrain, counter);
         putDoubleValue(flat, "partsStats.heavyDamping", c.heavyDamping, counter);
         putIntValue(flat, "partsStats.heavyTier", c.heavyTier, counter);
-        putIntValue(flat, "partsStats.plainDurability", c.plainDurability, counter);
-        putDoubleValue(flat, "partsStats.plainWindowBonus", c.plainWindowBonus, counter);
-        putIntValue(flat, "partsStats.barbedDurability", c.barbedDurability, counter);
-        putDoubleValue(flat, "partsStats.barbedWindowBonus", c.barbedWindowBonus, counter);
         putIntValue(flat, "partsStats.lureSpoonDurability", c.lureSpoonDurability, counter);
         putIntValue(flat, "partsStats.lureSpoonTier", c.lureSpoonTier, counter);
         putIntValue(flat, "partsStats.lureGlowspoonDurability", c.lureGlowspoonDurability, counter);
@@ -1731,8 +1727,6 @@ public final class Tuning {
     public static double heavyStaminaDrain() { return cfg().heavyStaminaDrain.get(); }
     public static double heavyDamping() { return cfg().heavyDamping.get(); }
     public static int heavyTier() { return cfg().heavyTier.get(); }
-    public static double plainWindowBonus() { return cfg().plainWindowBonus.get(); }
-    public static double barbedWindowBonus() { return cfg().barbedWindowBonus.get(); }
     public static int lureSpoonTier() { return cfg().lureSpoonTier.get(); }
     public static int lureGlowspoonTier() { return cfg().lureGlowspoonTier.get(); }
     public static int lureMinnowTier() { return cfg().lureMinnowTier.get(); }

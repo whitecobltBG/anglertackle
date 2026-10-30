@@ -1,0 +1,84 @@
+{
+  "_README": [
+    "鱼的「水层」——唯一真相。",
+    "改这里 → 跑 node tools/gen-fish-layers.js --write → 生成",
+    "src/main/java/com/whitecobalt/anglertackle/fishing/FishLayers.java。",
+    "Java 那边是生成文件，不要手改（check-fish-layers.js 会逐字节比对）。",
+    "",
+    "依据：仓库内 fish_research/<id>.json 的 waterLayer 字段（每条带 FishBase/FAO/中文源 URL），",
+    "判定口径见 docs/42-铅锤系统策划案.md §3.3。",
+    "",
+    "layers 数组的顺序**就是**枚举的顺序，不许重排（位序/存档都用它）。"
+  ],
+  "layers": [
+    {
+      "id": "surface",
+      "zh": "浅层",
+      "en": "Surface"
+    },
+    {
+      "id": "mid",
+      "zh": "中层",
+      "en": "Mid"
+    },
+    {
+      "id": "bottom",
+      "zh": "底层",
+      "en": "Bottom"
+    },
+    {
+      "id": "near_bottom",
+      "zh": "贴底",
+      "en": "Near bottom"
+    }
+  ],
+  "fish": {
+    "tilapia": "bottom",
+    "african_butterflyfish": "surface",
+    "crucian_carp": "near_bottom",
+    "mirror_carp": "near_bottom",
+    "jewel_cichlid": "mid",
+    "mullet": "near_bottom",
+    "zander": "mid",
+    "atlantic_salmon": "mid",
+    "bluefin_tuna": "surface",
+    "brown_trout": "mid",
+    "arctic_char": "mid",
+    "whitefish": "mid",
+    "rainbow_trout": "mid",
+    "burbot": "near_bottom",
+    "taimen": "bottom",
+    "arctic_cod": "near_bottom",
+    "capelin": "mid",
+    "atlantic_herring": "mid",
+    "wolffish": "near_bottom",
+    "redfish": "bottom",
+    "sablefish": "bottom",
+    "atlantic_cod": "bottom",
+    "greenland_halibut": "bottom",
+    "greenland_shark": "bottom",
+    "sailfish": "surface",
+    "mahi_mahi": "surface",
+    "alligator_gar": "near_bottom",
+    "giant_siamese_carp": "bottom",
+    "electric_eel": "bottom",
+    "tigerfish": "mid",
+    "topmouth_culter": "surface",
+    "hemiculter": "surface",
+    "striped_bass": "bottom",
+    "platinum_arowana": "surface",
+    "oxeye_tarpon": "mid",
+    "banded_loach": "near_bottom",
+    "guppy": "surface",
+    "elephantnose": "near_bottom",
+    "grass_carp": "mid",
+    "black_carp": "near_bottom",
+    "pike": "mid",
+    "arapaima": "surface",
+    "north_african_catfish": "near_bottom",
+    "sapphire_snakehead": "bottom",
+    "juvenile_shark": "near_bottom",
+    "golden_loach": "near_bottom",
+    "cave_blindfish": "mid"
+  }
+}

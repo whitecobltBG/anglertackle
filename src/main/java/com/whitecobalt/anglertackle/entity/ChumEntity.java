@@ -490,4 +490,19 @@ public class ChumEntity extends Entity {
             tag.putUUID("ChumOwner", this.ownerUuid);
         }
     }
+    /**
+     * 窝料的**渲染距离**（2026-10-30 用户："稍微扔远点就看不到"）。
+     *
+     * <p>原版 {@link Entity#shouldRenderAtSqrDistance} 是按**包围盒尺寸**算的：
+     * 尺寸 0.3 的实体只有 {@code (0.3 × 64)² ≈ 368} 平方格 ≈ **19 格** ——
+     * 窝料是扔出去用的，19 格以外直接不画，看起来就像"消失了"。
+     *
+     * <p>这里改成固定 128 格（16,384 平方格）：与 {@code clientTrackingRange(12)}（192 格）
+     * 一致地覆盖常见抛投距离，再远就交给服务端回收逻辑。
+     */
+    @Override
+    public boolean shouldRenderAtSqrDistance(double distSqr) {
+        return distSqr < 128.0 * 128.0;
+    }
+
 }

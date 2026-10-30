@@ -209,7 +209,7 @@ function composeStats(rod, line, reel, hook) {
     pullStruggle: Math.min(R[1], cfg.capPull),
     damping,
     lineLength: 30.0 * L[3],                       // PartComposer.lineLength
-    hookWindowBonus: hook.args[0],
+    hookWindowBonus: 0.0,   // 鱼钩已删除（2026-10-30）：窗口只剩 hookWindowBase
     // PartComposer.floorDrainPerSec（保底体力削减，5~20 点/秒）
     floorDrainPerSec: Math.max(cfg.reelFloorDrainBase, Math.min(
       cfg.reelFloorDrainBase + Math.max(0.0, damping - 1.0) * cfg.reelFloorDrainPerDamping,

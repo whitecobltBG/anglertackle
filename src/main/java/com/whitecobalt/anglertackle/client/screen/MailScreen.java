@@ -133,14 +133,24 @@ public class MailScreen extends Screen {
     private void rebuild() {
         clearAll();
         MailPayload snap = snap();
-        // 底部两个按钮：全部已读（左下）+ 完成（右下）
+        // 底部布局（2026-10-30 修"翻页键与已读重叠"）：
+        //   [< 18] 6~24 | [全部已读 80] 28~108 | [一键领取 80] 112~192 | [> 18] 196~214 … 完成(右)
+        //   ⚠ 翻页键原本和【全部已读】都从 left+6/+8 起，直接叠在一起（用户截图反馈）。
+        //   这几组数是**互斥的区间**，改宽度时必须一起挪，守着它的是 check-mail-claim-all.js。
         int by = top + panelH - FOOTER_H + 3;
         Button all = Button.builder(Component.translatable("gui.anglertackle.mail_readall"),
                         b -> action(MailActionPayload.READALL, -1))
-                .bounds(left + 6, by, 80, 18).build();
+                .bounds(left + 28, by, 80, 18).build();
         all.active = snap != null && snap.unread() > 0;
         addRenderableWidget(all);
         buttons.add(all);
+        // 一键领取：只有"还有可领的"才可点（避免空点）。位置放在【全部已读】右边。
+        Button claimAll = Button.builder(Component.translatable("gui.anglertackle.mail_claim_all"),
+                        b -> action(MailActionPayload.CLAIM_ALL, -1))
+                .bounds(left + 112, by, 80, 18).build();
+        claimAll.active = snap != null && snap.claimable() > 0;
+        addRenderableWidget(claimAll);
+        buttons.add(claimAll);
         Button done = Button.builder(Component.translatable("gui.anglertackle.mail_done"),
                         b -> this.onClose())
                 .bounds(left + panelW - 6 - 60, by, 60, 18).build();
@@ -157,14 +167,14 @@ public class MailScreen extends Screen {
             Button prev = Button.builder(Component.literal("<"), b -> {
                 page = Math.max(0, page - 1);
                 rebuild();
-            }).bounds(left + 8, by, 18, 18).build();
+            }).bounds(left + 6, by, 18, 18).build();
             prev.active = page > 0;
             addRenderableWidget(prev);
             buttons.add(prev);
             Button next = Button.builder(Component.literal(">"), b -> {
                 page = Math.min(pages - 1, page + 1);
                 rebuild();
-            }).bounds(left + LIST_W - 26, by, 18, 18).build();
+            }).bounds(left + 196, by, 18, 18).build();
             next.active = page < pages - 1;
             addRenderableWidget(next);
             buttons.add(next);

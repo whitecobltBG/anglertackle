@@ -13,6 +13,7 @@ import com.whitecobalt.anglertackle.item.FishKnifeItem;
 import com.whitecobalt.anglertackle.item.PartStats;
 import com.whitecobalt.anglertackle.item.RodItem;
 import com.whitecobalt.anglertackle.item.SeasoningItem;
+import com.whitecobalt.anglertackle.item.SinkerItem;
 import com.whitecobalt.anglertackle.item.TacklePartItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -241,15 +242,33 @@ public final class ModItems {
     // 用户定案：鱼钩只保留**唯一真正生效**的「提竿窗口」。
     // 原来的"大个体概率 / 夜间效率"两个属性没有任何实现，
     // 只在 tooltip 上显示数字 —— 已删除，不再骗玩家。
-    /** 普通钩：基准，提竿窗口 +0.00s。 */
-    public static final DeferredItem<TacklePartItem> PLAIN_HOOK = ITEMS.register("plain_hook",
-            () -> new TacklePartItem(TacklePartItem.Slot.HOOK,
-                    partProps(0, Rarity.COMMON, PartStats.hook(0.00))));
+    // ④ 鱼钩【已删除 2026-10-30】：用户"取消鱼钩栏改为铅锤栏，取消鱼钩相关一切"。
+    //   铅锤只影响"哪一水层的鱼更容易上钩"，**仅路亚可用**（用户定案）。
+    //   倍率顺序 = [浅层, 中层, 底层, 贴底]（FishLayers.Layer 的枚举顺序）。
 
-    /** 倒刺钩：提竿窗口 +0.08s（绿档）。 */
-    public static final DeferredItem<TacklePartItem> BARBED_HOOK = ITEMS.register("barbed_hook",
-            () -> new TacklePartItem(TacklePartItem.Slot.HOOK,
-                    partProps(0, Rarity.UNCOMMON, PartStats.hook(0.08))));
+    /** g8 铅锤 · ガン玉 8号：浅层 ×1.30。 */
+    public static final DeferredItem<SinkerItem> SINKER_G8 = ITEMS.register("sinker_g8",
+            () -> new SinkerItem(partProps(0, Rarity.COMMON, PartStats.NEUTRAL), 1.30, 1.00, 1.00, 1.00));
+
+    /** g2 铅锤 · ガン玉 2号：浅层 ×1.05、中层 ×1.20。 */
+    public static final DeferredItem<SinkerItem> SINKER_G2 = ITEMS.register("sinker_g2",
+            () -> new SinkerItem(partProps(0, Rarity.COMMON, PartStats.NEUTRAL), 1.05, 1.20, 1.00, 1.00));
+
+    /** 3b 铅锤 · B 系咬铅 3B：中层 ×1.30。 */
+    public static final DeferredItem<SinkerItem> SINKER_3B = ITEMS.register("sinker_3b",
+            () -> new SinkerItem(partProps(0, Rarity.UNCOMMON, PartStats.NEUTRAL), 1.00, 1.30, 1.00, 1.00));
+
+    /** 5b 铅锤 · B 系咬铅 5B：中层 ×1.05、底层 ×1.20。 */
+    public static final DeferredItem<SinkerItem> SINKER_5B = ITEMS.register("sinker_5b",
+            () -> new SinkerItem(partProps(0, Rarity.UNCOMMON, PartStats.NEUTRAL), 1.00, 1.05, 1.20, 1.00));
+
+    /** 0.3号铅锤 · 中通铅：底层 ×1.10、贴底 ×1.10。 */
+    public static final DeferredItem<SinkerItem> SINKER_03 = ITEMS.register("sinker_03",
+            () -> new SinkerItem(partProps(0, Rarity.UNCOMMON, PartStats.NEUTRAL), 1.00, 1.00, 1.10, 1.10));
+
+    /** 0.5号铅锤 · 中通铅：贴底 ×1.30。 */
+    public static final DeferredItem<SinkerItem> SINKER_05 = ITEMS.register("sinker_05",
+            () -> new SinkerItem(partProps(0, Rarity.RARE, PartStats.NEUTRAL), 1.00, 1.00, 1.00, 1.30));
 
     // ------------------------------------------------------------------ ⑥ 浮漂【已删除】
     // 木浮漂 / 荧光漂两个物品已移除（用户定案："去掉这个功能，目前没看到两配件作用"）。
@@ -1403,8 +1422,12 @@ public final class ModItems {
                         output.accept(DRUM_REEL.get());
                         output.accept(BAITCAST_REEL.get());
                         output.accept(HEAVY_REEL.get());
-                        output.accept(PLAIN_HOOK.get());
-                        output.accept(BARBED_HOOK.get());
+                        output.accept(SINKER_G8.get());
+                        output.accept(SINKER_G2.get());
+                        output.accept(SINKER_3B.get());
+                        output.accept(SINKER_5B.get());
+                        output.accept(SINKER_03.get());
+                        output.accept(SINKER_05.get());
                         // 鱼获与教程书（按品质从低到高）
                         output.accept(CRUCIAN_CARP.get());
                         output.accept(TILAPIA.get());

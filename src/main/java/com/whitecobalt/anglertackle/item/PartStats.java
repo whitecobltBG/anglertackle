@@ -32,12 +32,11 @@ import net.minecraft.network.codec.StreamCodec;
  * @param pullStruggle     挣扎时回拉速度倍率
  * @param staminaDrain     体力削减倍率（拉鱼时鱼掉体力多快）
  * @param damping          压制阻尼倍率（抑制鱼回气；高于 1 的部分另有转化，见 FishingSession）
- * @param hookWindowBonus  提竿窗口加成（秒，加法）
  * @param tier             **品质档位**（1–6 = 白/绿/蓝/紫/金/红）
  *
  * <p><b>档位是 1 起，不是 0 起。</b>消费点在 {@link TacklePartItem}：
  * 只有 {@code partTier() > 0} 的配件（鱼线、拟饵）才走
- * {@code Quality.of(partTier() - 1)}；渔轮/鱼钩的 0 表示"没有档位"，
+ * {@code Quality.of(partTier() - 1)}；渔轮/铅锤的 0 表示"没有档位"，
  * 名字直接按原版 {@code Rarity} 上色。
  * 曾经这里（以及 ModItems 里）写成"0 白 1 绿 …"，照那个填会让整体差一档 ——
  * 镀金显示成金、红档永远出不来。{@code tools/check-part-tier-range.js} 现在会拦。
@@ -53,17 +52,15 @@ public record PartStats(
         double pullStruggle,
         double staminaDrain,
         double damping,
-        // ---- ④ 鱼钩 ----
-        double hookWindowBonus,
-        // ---- 通用 ----
+        // ---- 通用（④ 铅锤的效果在 SinkerItem 上，不进这里）----
         int tier
 ) {
 
-    /** 全 1.0 基准（木竿 / 麻线 / 手线轮 / 普通钩），档位白。 */
+    /** 全 1.0 基准（木竿 / 麻线 / 手线轮 / 无铅锤），档位白。 */
     public static final PartStats NEUTRAL = new PartStats(
             1.0, 1.0, 1.0, 1.0,
             1.0, 1.0, 1.0, 1.0,
-            0.0, 0
+            0
     );
 
     public static final Codec<PartStats> CODEC = RecordCodecBuilder.create(inst -> inst.group(
@@ -75,7 +72,6 @@ public record PartStats(
             Codec.DOUBLE.optionalFieldOf("pull_struggle", 1.0).forGetter(PartStats::pullStruggle),
             Codec.DOUBLE.optionalFieldOf("stamina_drain", 1.0).forGetter(PartStats::staminaDrain),
             Codec.DOUBLE.optionalFieldOf("damping", 1.0).forGetter(PartStats::damping),
-            Codec.DOUBLE.optionalFieldOf("hook_window_bonus", 0.0).forGetter(PartStats::hookWindowBonus),
             // 档位原先是借 sensitivity 字段存的（浮点），这里是真正的整数字段。
             // 旧存档里那个 "sensitivity" 键会被忽略（没有对应字段了），档位退回默认 0。
             Codec.INT.optionalFieldOf("tier", 0).forGetter(PartStats::tier)
@@ -91,13 +87,14 @@ public record PartStats(
                 buf.writeDouble(s.pullStruggle);
                 buf.writeDouble(s.staminaDrain);
                 buf.writeDouble(s.damping);
-                buf.writeDouble(s.hookWindowBonus);
                 buf.writeVarInt(s.tier);
             },
             buf -> new PartStats(
-                    buf.readDouble(), buf.readDouble(), buf.readDouble(), buf.readDouble(),
-                    buf.readDouble(), buf.readDouble(), buf.readDouble(), buf.readDouble(),
-                    buf.readDouble(), buf.readVarInt())
+                    buf.readDouble(), buf.readDouble(),
+                    buf.readDouble(), buf.readDouble(),
+                    buf.readDouble(), buf.readDouble(),
+                    buf.readDouble(), buf.readDouble(),
+                    buf.readVarInt())
     );
 
     /** 便捷构造：只改鱼线相关的四个值，档位默认白。 */
@@ -116,7 +113,7 @@ public record PartStats(
      * @param tier 品质档位（1–6 = 白/绿/蓝/紫/金/红）
      */
     public static PartStats line(double ceiling, double gen, double recover, double length, int tier) {
-        return new PartStats(ceiling, gen, recover, length, 1, 1, 1, 1, 0.0, tier);
+        return new PartStats(ceiling, gen, recover, length, 1, 1, 1, 1, tier);
     }
 
     /** 便捷构造：只改渔轮相关的四个值。 */
@@ -134,7 +131,7 @@ public record PartStats(
      * <p>⚠ 档位是 **1 起算**（1白 … 6红），与鱼线/拟饵同一套；0 仍然表示"没有档位"。
      */
     public static PartStats reel(double pullIdle, double pullStruggle, double drain, double damping, int tier) {
-        return new PartStats(1, 1, 1, 1, pullIdle, pullStruggle, drain, damping, 0.0, tier);
+        return new PartStats(1, 1, 1, 1, pullIdle, pullStruggle, drain, damping, tier);
     }
 
     /**
@@ -143,10 +140,6 @@ public record PartStats(
      * <p>曾经还有"大个体权重"和"夜间效率"两个参数——它们**没有任何实现**，
      * 已随浮漂槽一起删除（用户定案）。现在鱼钩只提供提竿窗口加成。
      */
-    public static PartStats hook(double windowBonus) {
-        return new PartStats(1, 1, 1, 1, 1, 1, 1, 1, windowBonus, 0);
-    }
-
     /**
      * 便捷构造：拟饵。
      *
@@ -156,7 +149,7 @@ public record PartStats(
      * @param tier 品质档位（1–6）
      */
     public static PartStats lure(int tier) {
-        return new PartStats(1, 1, 1, 1, 1, 1, 1, 1, 0.0, tier);
+        return new PartStats(1, 1, 1, 1, 1, 1, 1, 1, tier);
     }
 
     /** 配件的**品质档位**（1–6 = 白/绿/蓝/紫/金/红）。 */

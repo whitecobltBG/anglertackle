@@ -96,7 +96,7 @@ public final class ShopDebug {
             case ROD -> "竿";
             case LINE -> "鱼线";
             case REEL -> "渔轮";
-            case HOOK -> "鱼钩";
+            case SINKER -> "铅锤";
             case LURE -> "拟饵";
             case BAIT -> "鱼饵";
             case CHUM -> "窝料";

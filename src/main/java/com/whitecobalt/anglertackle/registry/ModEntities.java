@@ -53,7 +53,9 @@ public final class ModEntities {
             ENTITIES.register("chum", () -> EntityType.Builder
                     .<ChumEntity>of(ChumEntity::new, MobCategory.MISC)
                     .sized(0.3f, 0.3f)
-                    .clientTrackingRange(12)
+                    // 2026-10-30：12 → 16 区块（256 格）。渲染距离改到 128 格之后，
+                    // 追踪范围必须 ≥ 它，否则"能画但没数据"照样看不见。
+                    .clientTrackingRange(16)
                     .updateInterval(1)
                     .noSummon()
                     .fireImmune()

@@ -222,6 +222,16 @@ public final class ModNetwork {
             }
             case MailActionPayload.READALL ->
                     com.whitecobalt.anglertackle.mail.MailService.readAll(player);
+            case MailActionPayload.CLAIM_ALL -> {
+                var all = com.whitecobalt.anglertackle.mail.MailService.claimAll(player);
+                if (all.mails() > 0 || all.bagFull()) {
+                    player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
+                            "message.anglertackle.mail_claim_all", all.mails(), all.coins(), all.items()), true);
+                }
+                if (all.bagFull()) {
+                    err = "bag_full";
+                }
+            }
             default -> {
                 // ⚠ 动作是**白名单**：不认识的 id 一律忽略（客户端不能自定义动作）
                 return;

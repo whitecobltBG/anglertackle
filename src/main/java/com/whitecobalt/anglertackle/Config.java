@@ -305,10 +305,6 @@ public final class Config {
     public final ModConfigSpec.DoubleValue heavyStaminaDrain;
     public final ModConfigSpec.DoubleValue heavyDamping;
     public final ModConfigSpec.IntValue heavyTier;
-    public final ModConfigSpec.IntValue plainDurability;
-    public final ModConfigSpec.DoubleValue plainWindowBonus;
-    public final ModConfigSpec.IntValue barbedDurability;
-    public final ModConfigSpec.DoubleValue barbedWindowBonus;
     public final ModConfigSpec.IntValue lureSpoonDurability;
     public final ModConfigSpec.IntValue lureSpoonTier;
     public final ModConfigSpec.IntValue lureGlowspoonDurability;
@@ -1791,18 +1787,6 @@ public final class Config {
                 heavyTier = b
                         .comment("大型纺车轮（heavy_reel） · 品质档位 —— 1白 2绿 3蓝 4紫 5金 6红")
                         .defineInRange("heavyTier", 5, 1, 6);
-                plainDurability = b
-                        .comment("普通钩（plain_hook） · 耐久上限 —— 用一次扣一点，扣光配件就损坏。⚠ 注册期固定，改它必须重启游戏")
-                        .defineInRange("plainDurability", 0, 0, 100000);
-                plainWindowBonus = b
-                        .comment("普通钩（plain_hook） · 提竿窗口加成 —— 单位是秒，加到基础提竿窗口上")
-                        .defineInRange("plainWindowBonus", 0.00, 0.0D, 100.0D);
-                barbedDurability = b
-                        .comment("倒刺钩（barbed_hook） · 耐久上限 —— 用一次扣一点，扣光配件就损坏。⚠ 注册期固定，改它必须重启游戏")
-                        .defineInRange("barbedDurability", 0, 0, 100000);
-                barbedWindowBonus = b
-                        .comment("倒刺钩（barbed_hook） · 提竿窗口加成 —— 单位是秒，加到基础提竿窗口上")
-                        .defineInRange("barbedWindowBonus", 0.08, 0.0D, 100.0D);
                 lureSpoonDurability = b
                         .comment("亮片拟饵（lure_spoon） · 耐久上限 —— 用一次扣一点，扣光配件就损坏。⚠ 注册期固定，改它必须重启游戏")
                         .defineInRange("lureSpoonDurability", 40, 0, 100000);

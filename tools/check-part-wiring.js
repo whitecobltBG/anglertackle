@@ -23,7 +23,7 @@ const ROOT = ATL_ROOT;
 const { parseParts } = require('./part-source.js');
 
 const camel = (s) => s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
-const shortId = (id) => id.replace(/_(line|reel|hook|lure)$/, '');
+const shortId = (id) => id.replace(/_(line|reel|sinker|lure)$/, '');
 
 /**
  * 有意变更登记表 —— key = {@code <部件id>.<字段名>}。
@@ -92,7 +92,9 @@ if (!fs.existsSync(bakPath)) {
 const expected = parseParts(fs.readFileSync(bakPath, 'utf8'), { literals: true });
 
 const EPS = 1e-9;
-for (const p of expected) {
+// 2026-10-30 起鱼钩已删除：备份里那两件不再参与"数值不许错位"的比对。
+const SKIP = new Set(['plain_hook', 'barbed_hook']);
+for (const p of expected.filter((x) => !SKIP.has(x.id))) {
   // 从当前 ModItems 里抓这个配件的 PartStats.<kind>(...) 实参
   const re = new RegExp('ITEMS\\.register\\("' + p.id + '"[\\s\\S]*?PartStats\\.' + p.kind + '\\(');
   const m = re.exec(src);
@@ -150,7 +152,7 @@ for (const p of expected) {
   let m;
   while ((m = probe.exec(src))) kinds.add(m[1]);
   for (const k of kinds) {
-    if (!['line', 'reel', 'hook', 'lure'].includes(k)) {
+    if (!['line', 'reel', 'sinker', 'lure'].includes(k)) {
       console.error('❌ 出现了未知的 PartStats.' + k + '(...)');
       bad++;
     }

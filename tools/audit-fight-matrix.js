@@ -50,7 +50,7 @@ for (const sp of fish) {
       });
       if (!rodName) { per[g] = { overCapacity: true }; continue; }
       const rod = sim.readRod(rodName);
-      const gear = sim.composeStats(rod, parts[preset.line], parts[preset.reel], parts.barbed_hook);
+      const gear = sim.composeStats(rod, parts[preset.line], parts[preset.reel], parts.sinker_g8);
       const r = sim.runCase(sp, tier, w, gear, 'good', SEEDS, CAST);
       per[g] = {
         catch: r.caughtRate, snap: r.snapRate, esc: r.escapeRate, to: r.timeoutRate,

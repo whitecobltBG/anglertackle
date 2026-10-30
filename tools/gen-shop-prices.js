@@ -50,7 +50,7 @@ const CATEGORY = [
   [/^(wood|iron|gold|diamond|netherite)_(float|lure)_rod$/, 'rod'],
   [/^(hemp|cotton|nylon|fluoro|pe|titanium)_line$/, 'line'],
   [/^(hand|spinning|drum|baitcast|heavy)_reel$/, 'reel'],
-  [/^(plain|barbed)_hook$/, 'hook'],
+  [/^sinker_/, 'sinker'],
   [/^lure_/, 'lure'],
   [/^bait_/, 'bait'],
   [/^chum_/, 'chum'],
@@ -65,7 +65,7 @@ const NOT_FOR_SALE = { lure_test_red: '调试物品 —— 不上架（发布前
 const lines = itemSrc.split('\n');
 const entries = [];
 for (let i = 0; i < lines.length; i++) {
-  const m = /(?:ITEMS\.register|=\s*rod)\(\s*"([a-z_]+)"/.exec(lines[i]);
+  const m = /(?:ITEMS\.register|=\s*rod)\(\s*"([a-z0-9_.]+)"/.exec(lines[i]);
   if (!m) continue;
   const id = m[1];
   const cat = (CATEGORY.find(([re]) => re.test(id)) || [])[1];
@@ -127,7 +127,7 @@ for (const e of entries) {
   }
 }
 
-const ORDER = ['rod', 'line', 'reel', 'hook', 'lure', 'bait', 'chum'];
+const ORDER = ['rod', 'line', 'reel', 'sinker', 'lure', 'bait', 'chum'];
 
 // ---------------------------------------------------------------- 解锁档位
 //
@@ -151,7 +151,7 @@ const unlockStageOf = (tier) => Math.max(1, Math.min(5, tier - 1));
  */
 const unlockStageOfEntry = (cat, tier) =>
   cat === 'rod' ? Math.max(1, Math.min(5, tier)) : unlockStageOf(tier);
-const CAT_NAME = { rod: '竿', line: '鱼线', reel: '渔轮', hook: '鱼钩', lure: '拟饵', bait: '鱼饵', chum: '窝料' };
+const CAT_NAME = { rod: '竿', line: '鱼线', reel: '渔轮', sinker: '铅锤', lure: '拟饵', bait: '鱼饵', chum: '窝料' };
 
 // ================================================================ 规则自检
 const checks = [];
@@ -218,12 +218,12 @@ for (const cat of ORDER) {
 
 // ③b 手滑兜底（规则表是手写的，这些错没人会逐个核对 39 件商品）
 {
-  // 免费商品必须正好是这 4 件。多一件 = 白送（比如把某条线手滑写成 FREE）
-  const EXPECT_FREE = ['hemp_line', 'hand_reel', 'plain_hook', 'barbed_hook'].sort();
+  // 免费商品必须正好是这 2 件。多一件 = 白送（比如把某条线手滑写成 FREE）
+  const EXPECT_FREE = ['hemp_line', 'hand_reel'].sort();
   const free = entries.filter((e) => !e.notForSale && e.rule && e.rule.kind === 'free')
     .map((e) => e.id).sort();
   if (free.join(',') === EXPECT_FREE.join(',')) {
-    checks.push('ℹ 免费商品正好是预期的 4 件：' + free.join(', '));
+    checks.push('ℹ 免费商品正好是预期的 2 件：' + free.join(', '));
   } else {
     checks.push('❌ 免费商品清单不对。实际：[' + free.join(', ') + ']，预期：['
       + EXPECT_FREE.join(', ') + ']');
@@ -679,7 +679,7 @@ function javaSource(r) {
   J.push('public final class ShopCatalog {');
   J.push('');
   J.push('    /** 商品分类（商店的"分页"就按它分）。 */');
-  J.push('    public enum Category { ROD, LINE, REEL, HOOK, LURE, BAIT, CHUM }');
+  J.push('    public enum Category { ROD, LINE, REEL, SINKER, LURE, BAIT, CHUM }');
   J.push('');
   J.push('    /** 获取方式。 */');
   J.push('    public enum Kind {');

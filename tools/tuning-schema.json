@@ -1697,42 +1697,6 @@
           "label": "大型纺车轮（heavy_reel） · 品质档位"
         },
         {
-          "key": "plainDurability",
-          "def": 0,
-          "min": 0,
-          "max": 100000,
-          "type": "double",
-          "comment": "普通钩（plain_hook） · 耐久上限 —— 用一次扣一点，扣光配件就损坏。⚠ 注册期固定，改它必须重启游戏",
-          "label": "普通钩（plain_hook） · 耐久上限"
-        },
-        {
-          "key": "plainWindowBonus",
-          "def": 0,
-          "min": 0,
-          "max": 100,
-          "type": "double",
-          "comment": "普通钩（plain_hook） · 提竿窗口加成 —— 单位是秒，加到基础提竿窗口上",
-          "label": "普通钩（plain_hook） · 提竿窗口加成"
-        },
-        {
-          "key": "barbedDurability",
-          "def": 0,
-          "min": 0,
-          "max": 100000,
-          "type": "double",
-          "comment": "倒刺钩（barbed_hook） · 耐久上限 —— 用一次扣一点，扣光配件就损坏。⚠ 注册期固定，改它必须重启游戏",
-          "label": "倒刺钩（barbed_hook） · 耐久上限"
-        },
-        {
-          "key": "barbedWindowBonus",
-          "def": 0.08,
-          "min": 0,
-          "max": 100,
-          "type": "double",
-          "comment": "倒刺钩（barbed_hook） · 提竿窗口加成 —— 单位是秒，加到基础提竿窗口上",
-          "label": "倒刺钩（barbed_hook） · 提竿窗口加成"
-        },
-        {
           "key": "lureSpoonDurability",
           "def": 40,
           "min": 0,

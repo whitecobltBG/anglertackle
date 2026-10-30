@@ -16,7 +16,7 @@ import java.util.List;
 public final class ShopCatalog {
 
     /** 商品分类（商店的"分页"就按它分）。 */
-    public enum Category { ROD, LINE, REEL, HOOK, LURE, BAIT, CHUM }
+    public enum Category { ROD, LINE, REEL, SINKER, LURE, BAIT, CHUM }
 
     /** 获取方式。 */
     public enum Kind {
@@ -74,9 +74,13 @@ public final class ShopCatalog {
             new Entry("drum_reel", Category.REEL, 3, Kind.BUY, 3750, 2, 0, 0, ""),
             new Entry("baitcast_reel", Category.REEL, 4, Kind.BUY, 20000, 3, 0, 0, ""),
             new Entry("heavy_reel", Category.REEL, 5, Kind.EXCHANGE, 0, 4, 0, 0, "atlantic_salmon+brown_trout+tigerfish@REDx1@each"),
-            // ---- 鱼钩,
-            new Entry("plain_hook", Category.HOOK, 1, Kind.FREE, 0, 1, 0, 0, ""),
-            new Entry("barbed_hook", Category.HOOK, 2, Kind.FREE, 0, 1, 0, 0, ""),
+            // ---- 铅锤,
+            new Entry("sinker_g2", Category.SINKER, 1, Kind.BUY, 100, 1, 0, 0, ""),
+            new Entry("sinker_g8", Category.SINKER, 1, Kind.BUY, 100, 1, 0, 0, ""),
+            new Entry("sinker_03", Category.SINKER, 2, Kind.BUY, 100, 1, 0, 0, ""),
+            new Entry("sinker_3b", Category.SINKER, 2, Kind.BUY, 100, 1, 0, 0, ""),
+            new Entry("sinker_5b", Category.SINKER, 2, Kind.BUY, 100, 1, 0, 0, ""),
+            new Entry("sinker_05", Category.SINKER, 3, Kind.BUY, 100, 2, 0, 0, ""),
             // ---- 拟饵,
             new Entry("lure_glowspoon", Category.LURE, 2, Kind.BUY, 440, 1, 0, 0, ""),
             new Entry("lure_spoon", Category.LURE, 2, Kind.BUY, 440, 1, 0, 0, ""),

@@ -158,7 +158,4 @@ public final class PartComposer {
         return 30.0 * line.lineLength();
     }
 
-    public static double hookWindowBonus(PartStats hook) {
-        return hook.hookWindowBonus();
-    }
 }
