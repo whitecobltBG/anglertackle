@@ -1177,11 +1177,14 @@ public final class FishingSession {
         // ★ 打上标记：beginWaiting 那一行"按真实距离重算"必须跳过这一竿（见字段注释）
         this.iceHoleCast = true;
 
-        // ⚠ 2026-10-29：**只有台钓**播原版抛投声。
-        //   路亚改由客户端播用户提供的真实素材（lure_cast），两边都播会糊成两层。
+        // 抛投音只由服务端在这里发一次：
+        //   台钓 → 用**路亚的抛竿声**（lure_cast）；用户 2026-10-30 允许"台钓部分音效使用路亚那边的"，
+        //          目前只放开了这一条，其余（收线/力竭/放线/上鱼）台钓仍然不播。
+        //   路亚 → 这里不播：客户端 ReelSounds 会播同一份素材（两边都播会糊成两层）。
         if (rodType() == com.whitecobalt.anglertackle.item.RodItem.RodType.FLOAT) {
-            level.playSound(null, this.player.blockPosition(), SoundEvents.FISHING_BOBBER_THROW,
-                    SoundSource.NEUTRAL, 0.5f, 0.4f / (level.random.nextFloat() * 0.4f + 0.8f));
+            level.playSound(null, this.player.blockPosition(),
+                    com.whitecobalt.anglertackle.registry.ModSounds.LURE_CAST.get(),
+                    SoundSource.NEUTRAL, 0.9f, 1.0f);
         }
 
         FishingManager.LOGGER.info("[垂纶] 精准入洞：浮漂直接放在洞心 ({}, {}, {})",
@@ -1220,11 +1223,14 @@ public final class FishingSession {
         this.castDistance = 0.0;
         this.iceHoleCast = false;      // 普通抛投：距离按浮漂真实落点算（beginWaiting 会重算）
 
-        // ⚠ 2026-10-29：**只有台钓**播原版抛投声。
-        //   路亚改由客户端播用户提供的真实素材（lure_cast），两边都播会糊成两层。
+        // 抛投音只由服务端在这里发一次：
+        //   台钓 → 用**路亚的抛竿声**（lure_cast）；用户 2026-10-30 允许"台钓部分音效使用路亚那边的"，
+        //          目前只放开了这一条，其余（收线/力竭/放线/上鱼）台钓仍然不播。
+        //   路亚 → 这里不播：客户端 ReelSounds 会播同一份素材（两边都播会糊成两层）。
         if (rodType() == com.whitecobalt.anglertackle.item.RodItem.RodType.FLOAT) {
-            level.playSound(null, this.player.blockPosition(), SoundEvents.FISHING_BOBBER_THROW,
-                    SoundSource.NEUTRAL, 0.5f, 0.4f / (level.random.nextFloat() * 0.4f + 0.8f));
+            level.playSound(null, this.player.blockPosition(),
+                    com.whitecobalt.anglertackle.registry.ModSounds.LURE_CAST.get(),
+                    SoundSource.NEUTRAL, 0.9f, 1.0f);
         }
 
         FishingManager.LOGGER.info("[垂纶] 浮漂已生成：初速 {} 仰角 {}° → vH={} vV={}",
@@ -1272,11 +1278,14 @@ public final class FishingSession {
         this.castDistance = 0.0;
         this.iceHoleCast = false;      // 同 castProjectile：普通抛投不吃上一竿的"冰洞"状态
 
-        // ⚠ 2026-10-29：**只有台钓**播原版抛投声。
-        //   路亚改由客户端播用户提供的真实素材（lure_cast），两边都播会糊成两层。
+        // 抛投音只由服务端在这里发一次：
+        //   台钓 → 用**路亚的抛竿声**（lure_cast）；用户 2026-10-30 允许"台钓部分音效使用路亚那边的"，
+        //          目前只放开了这一条，其余（收线/力竭/放线/上鱼）台钓仍然不播。
+        //   路亚 → 这里不播：客户端 ReelSounds 会播同一份素材（两边都播会糊成两层）。
         if (rodType() == com.whitecobalt.anglertackle.item.RodItem.RodType.FLOAT) {
-            level.playSound(null, this.player.blockPosition(), SoundEvents.FISHING_BOBBER_THROW,
-                    SoundSource.NEUTRAL, 0.5f, 0.4f / (level.random.nextFloat() * 0.4f + 0.8f));
+            level.playSound(null, this.player.blockPosition(),
+                    com.whitecobalt.anglertackle.registry.ModSounds.LURE_CAST.get(),
+                    SoundSource.NEUTRAL, 0.9f, 1.0f);
         }
 
         FishingManager.LOGGER.debug("[垂纶] 抛投 power={} v0={} vH={} vV={}",

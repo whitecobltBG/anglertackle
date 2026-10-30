@@ -3928,6 +3928,17 @@ const CASES = [
   // ---- 2026-10-30：水层生成物不许手改（手改会让"改 json 不生成"悄悄生效）----
 
   // ---- 2026-10-30：铅锤倍率不许改错数量级（+30% 写成 +3% 玩家根本感觉不到）----
+
+  // ---- 2026-10-30：台钓的抛竿音已换成 lure_cast，不许退回原版（会把素材盖掉）----
+  { dir: 'float-cast-back-to-vanilla', checker: 'check-sounds.js', expect: 1,
+    desc: '把台钓抛竿音退回原版 FISHING_BOBBER_THROW —— 用户会重新听到"老音效"',
+    mutate: (at) => {
+      const F = 'src/main/java/com/whitecobalt/anglertackle/fishing/FishingSession.java';
+      at.set(F, mustReplace(at.get(F),
+        'com.whitecobalt.anglertackle.registry.ModSounds.LURE_CAST.get(),',
+        'net.minecraft.sounds.SoundEvents.FISHING_BOBBER_THROW,',
+        'float-cast-back-to-vanilla'));
+    } },
   { dir: 'sinker-bonus-wrong-value', checker: 'check-fish-layers.js', expect: 1,
     desc: '把 g8 的浅层倍率从 1.30 改成 1.03 —— 与策划案 §4 不符',
     mutate: (at) => {

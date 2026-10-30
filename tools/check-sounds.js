@@ -177,11 +177,13 @@ if (exists(csPath) && /ReelSounds\.onStateChanged\(prevState, this\.state\)/.tes
 // 它和客户端的新素材叠在一起，听起来就像"没改"。
 {
   const sess = strip(read('src/main/java/com/whitecobalt/anglertackle/fishing/FishingSession.java'));
-  const guarded = /if \(rodType\(\) == com\.whitecobalt\.anglertackle\.item\.RodItem\.RodType\.FLOAT\) \{[\s\S]{0,220}?FISHING_BOBBER_THROW/.test(sess);
-  const unguarded = /^(?![\s\S]*RodType\.FLOAT)[\s\S]*FISHING_BOBBER_THROW/m.test(sess)
-    && (sess.match(/FISHING_BOBBER_THROW/g) || []).length !== (sess.match(/RodType\.FLOAT/g) || []).length;
-  if (guarded && !unguarded) ok('服务端不再给路亚播原版抛投声（只剩台钓那一份）');
-  else fail('服务端仍在无条件播 FISHING_BOBBER_THROW —— 会把客户端的新素材盖掉（用户听感："还是老音效"）');
+  // 2026-10-30 用户准许"台钓部分音效使用路亚那边的"，目前只放开**抛竿**这一条：
+  //   台钓 → 服务端播 lure_cast；路亚 → 服务端不播（客户端 ReelSounds 播同一份）
+  //   ⇒ 原版 FISHING_BOBBER_THROW 应当**完全消失**，否则会盖住新素材。
+  const floatCast = /RodType\.FLOAT\) \{[\s\S]{0,260}?ModSounds\.LURE_CAST/.test(sess);
+  const noVanillaThrow = !/FISHING_BOBBER_THROW/.test(sess);
+  if (floatCast && noVanillaThrow) ok('抛竿音：台钓用 lure_cast（路亚仍由客户端播），原版抛投声已彻底移除');
+  else fail('抛竿音不对：台钓应当播 ModSounds.LURE_CAST 且服务端不再有 FISHING_BOBBER_THROW（floatCast=' + floatCast + ' noVanillaThrow=' + noVanillaThrow + '）');
 
   const bob = strip(read('src/main/java/com/whitecobalt/anglertackle/entity/BobberEntity.java'));
   if (/FISHING_BOBBER_SPLASH[\s\S]{0,200}?1\.15f/.test(bob)) ok('浮漂落水用原版 splash，但音高抬到 1.15+（用户要求）');
