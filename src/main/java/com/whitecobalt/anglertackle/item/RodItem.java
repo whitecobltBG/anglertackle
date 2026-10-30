@@ -281,7 +281,7 @@ public class RodItem extends Item implements HasQuality {
         boolean isFloatRod = type == RodType.FLOAT;
         String[] names = isFloatRod
                 ? new String[]{"bait"}
-                : new String[]{"line", "reel", "hook", "lure"};
+                : new String[]{"line", "reel", "sinker", "lure"};
         String[] values = isFloatRod
                 // ⚠️ 台钓读的是 bait 槽，不是 lure。
                 // 之前这里写成 parts.lure()，而装进去的饵料存在 bait 字段里，

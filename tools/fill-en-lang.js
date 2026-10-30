@@ -74,6 +74,7 @@ const EN = {
   'tooltip.anglertackle.palat.chronic.dioxin': '⚠ Long-term: dioxin builds up (%s meals → Poison)',
   'tooltip.anglertackle.stats_header': 'Combined stats:',
   // ↓ 这些是 zh_cn 也缺、需要两边都补的
+  'tooltip.anglertackle.slot.sinker': '[Sinker]',
   'tooltip.anglertackle.slot.lure': '[Lure]',
   'tooltip.anglertackle.slot.bait': '[Bait]',
 };

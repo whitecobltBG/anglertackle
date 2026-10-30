@@ -129,7 +129,9 @@ public final class ModDataComponents {
         }
 
         /** 槽位名（与 {@link #all()} 同序），用于本地化 key。 */
-        public static final String[] SLOT_NAMES = {"rod", "line", "reel", "hook", "lure", "bait"};
+        // 展示用名（语言键后缀）。⚠ 下面的 codec 字段仍叫 "hook" —— 那是老存档的键，
+        // 改名会让所有已装配的竿读不出铅锤；展示名与存档名在这里是**故意分开**的。
+        public static final String[] SLOT_NAMES = {"rod", "line", "reel", "sinker", "lure", "bait"};
 
         /** 是否有任何槽位装了东西。 */
         public boolean isEmpty() {

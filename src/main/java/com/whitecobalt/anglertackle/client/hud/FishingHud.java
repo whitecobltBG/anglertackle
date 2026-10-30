@@ -201,7 +201,7 @@ public final class FishingHud {
 
     /** 槽位序号 → 本地化名（与 {@code RodParts.SLOT_NAMES} 同序）。 */
     private static String slotName(int slot) {
-        String[] names = {"rod", "line", "reel", "hook", "lure", "bait"};
+        String[] names = {"rod", "line", "reel", "sinker", "lure", "bait"};
         String key = slot >= 0 && slot < names.length ? names[slot] : "rod";
         return Component.translatable("tooltip.anglertackle.slot." + key).getString();
     }
