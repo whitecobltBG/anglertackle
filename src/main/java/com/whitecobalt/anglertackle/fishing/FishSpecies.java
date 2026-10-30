@@ -1192,13 +1192,24 @@ public record FishSpecies(
      * @param luckPoints    渔运：金红总爆率要加的**百分点**（绝对值，不是倍率）
      * @param speciesWeight 爆口 / 空军：每条鱼的权重倍率（{@code null} = 不加成）
      */
-    public record RollBonus(double luckPoints, ToDoubleFunction<FishSpecies> speciesWeight) {
+    public record RollBonus(double luckPoints, ToDoubleFunction<FishSpecies> speciesWeight,
+                            double[] layerBonus) {
 
         /** 没有任何钓获类效果。 */
-        public static final RollBonus NONE = new RollBonus(0.0, null);
+        public static final RollBonus NONE = new RollBonus(0.0, null, null);
+
+        /** 兼容老调用点（菜品效果只带渔运/爆口，不带铅锤）。 */
+        public RollBonus(double luckPoints, ToDoubleFunction<FishSpecies> speciesWeight) {
+            this(luckPoints, speciesWeight, null);
+        }
+
+        /** 挂上铅锤的四层倍率（下标 = {@code FishLayers.Layer.ordinal()}；null = 不启用）。 */
+        public RollBonus withLayers(double[] layers) {
+            return new RollBonus(this.luckPoints, this.speciesWeight, layers);
+        }
 
         public boolean isEmpty() {
-            return this.luckPoints <= 0.0 && this.speciesWeight == null;
+            return this.luckPoints <= 0.0 && this.speciesWeight == null && this.layerBonus == null;
         }
     }
 
@@ -1670,6 +1681,24 @@ public record FishSpecies(
             }
         }
 
+        // ★ 铅锤（2026-10-30）：按"这条鱼属于哪一水层"乘倍率。
+        //
+        //   位置**必须**在这里：解 k 之后、取整之前。
+        //   ① 放到解 k 之前 → 金红那批鱼的倍率会被 k 反解掉，净效果为零（爆口/空军踩过）；
+        //   ② 放到取整之后 → 只能乘整数权重，最小档位权重是 3，3×1.30=3 等于没加成。
+        //   只在路亚场次才会传进来（FishingSession 侧门禁，台钓恒为 null）。
+        if (bonus != null && bonus.layerBonus() != null) {
+            for (int i = 0; i < kept.size(); i++) {
+                FishLayers.Layer layer = FishLayers.of(kept.get(i).id());
+                if (layer == null) {
+                    continue;   // 没登记水层的鱼不受铅锤影响（不静默当中层）
+                }
+                double mul = bonus.layerBonus()[layer.ordinal()];
+                if (mul != 1.0) {
+                    weights.set(i, weights.get(i) * mul);
+                }
+            }
+        }
         java.util.List<PoolEntry> pool = new java.util.ArrayList<>();
         for (int i = 0; i < kept.size(); i++) {
             FishSpecies s = kept.get(i);

@@ -1539,6 +1539,13 @@ public final class FishingSession {
             //   爆口/空军乘的是单条鱼的权重，位置在"解完 k、取整之前"。
             //   所以这里只把它们打包传下去，日志另打一行（上面那行 hvPct 是饵料承诺，不含渔运）。
             FishSpecies.RollBonus rollBonus = DishEffectHooks.rollBonus(this.player);
+            // 铅锤（仅路亚）：把四层倍率挂进 RollBonus，由 buildPool 在"解 k 之后"统一乘。
+            // 台钓不挂 —— 用户定案"铅锤仅路亚可用"，结构上不让它影响台钓。
+            if (rodKind() == FishSpecies.RodKind.LURE) {
+                rollBonus = rollBonus.withLayers(
+                        com.whitecobalt.anglertackle.fishing.RodModManager
+                                .sinkerLayerBonus(this.player.getMainHandItem()));
+            }
             String bonusReport = DishEffectHooks.describeRollBonus(this.player);
             if (!bonusReport.isEmpty()) {
                 FishingManager.LOGGER.info("[垂纶] 菜品效果：{}", bonusReport);

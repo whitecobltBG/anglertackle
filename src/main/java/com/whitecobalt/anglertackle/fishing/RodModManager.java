@@ -326,6 +326,23 @@ public final class RodModManager {
         return findRod(player);
     }
 
+    /**
+     * 竿上装的铅锤给出的**四层倍率**（没有铅锤 / 不是铅锤 → 全 1.0）。
+     *
+     * <p>下标 = {@link FishLayers.Layer#ordinal()}。调用方（FishingSession）负责"仅路亚"的门禁。
+     */
+    public static double[] sinkerLayerBonus(ItemStack rodStack) {
+        double[] out = new double[com.whitecobalt.anglertackle.fishing.FishLayers.Layer.values().length];
+        java.util.Arrays.fill(out, 1.0);
+        ItemStack stack = slotStackOf(currentParts(rodStack), SLOT_SINKER);
+        if (stack.getItem() instanceof com.whitecobalt.anglertackle.item.SinkerItem sinker) {
+            for (com.whitecobalt.anglertackle.fishing.FishLayers.Layer layer
+                    : com.whitecobalt.anglertackle.fishing.FishLayers.Layer.values()) {
+                out[layer.ordinal()] = sinker.bonus(layer);
+            }
+        }
+        return out;
+    }
     private static ModDataComponents.RodParts currentParts(ItemStack rodStack) {
         ModDataComponents.RodParts parts = rodStack.get(ModDataComponents.ROD_PARTS.get());
         return parts == null ? ModDataComponents.RodParts.EMPTY : parts;

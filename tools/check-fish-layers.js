@@ -65,6 +65,61 @@ for (const lang of ['zh_cn', 'en_us']) {
   else ok(lang + ' 四条水层语言键齐全');
 }
 
+// ---- 铅锤倍率接线（2026-10-30 第 4 步）----
+const strip = (s) => s.replace(/\/\/[^\n]*/g, ' ').replace(/\/\*[\s\S]*?\*\//g, ' ');
+{
+  const spec = read('src/main/java/com/whitecobalt/anglertackle/fishing/FishSpecies.java');
+  const body = strip(spec);
+
+  if (!/bonus\.layerBonus\(\) != null/.test(body)) {
+    fail('buildPool 里没有应用铅锤倍率（layerBonus）—— 装了铅锤等于没装');
+  } else {
+    // 位置：必须在"解完 k"之后、"取整"之前
+    const iK = body.indexOf('double k = (p * other) / ((1.0 - p) * hvWeight)');
+    const iLayer = body.indexOf('bonus.layerBonus() != null');
+    const iRound = body.indexOf('Math.max(1, Math.round(weights.get(i)))');
+    if (iK < 0 || iLayer < 0 || iRound < 0) {
+      fail('切不出"解 k / 铅锤 / 取整"三段 —— 判据失效（改过实现？）');
+    } else if (!(iK < iLayer && iLayer < iRound)) {
+      fail('铅锤倍率不在"解 k 之后、取整之前" —— 放前面会被 k 反解掉（净效果为零），放后面乘不动小数');
+    } else {
+      ok('铅锤倍率乘在"解 k 之后、取整之前"（不会被反解掉）');
+    }
+  }
+
+  const session = strip(read('src/main/java/com/whitecobalt/anglertackle/fishing/FishingSession.java'));
+  if (/rodKind\(\) == FishSpecies\.RodKind\.LURE[\s\S]{0,400}sinkerLayerBonus/.test(session)) {
+    ok('只有路亚场次才挂铅锤倍率（台钓恒为 null）');
+  } else fail('没有"仅路亚"门禁 —— 台钓也会被铅锤影响（用户定案铅锤仅路亚可用）');
+
+  if (/public static final RollBonus NONE = new RollBonus\(0\.0, null, null\);/.test(spec)) {
+    ok('RollBonus.NONE 不带层倍率（未装铅锤时与改造前逐字节一致）');
+  } else fail('RollBonus.NONE 变了 —— 没装铅锤的路径会被莫名改动');
+
+  // 6 种铅锤的倍率必须和策划案 §4 一致（顺序：浅/中/底/贴底）
+  const items = strip(read('src/main/java/com/whitecobalt/anglertackle/registry/ModItems.java'));
+  const want = {
+    sinker_g8: [1.30, 1.00, 1.00, 1.00],
+    sinker_g2: [1.05, 1.20, 1.00, 1.00],
+    sinker_3b: [1.00, 1.30, 1.00, 1.00],
+    sinker_5b: [1.00, 1.05, 1.20, 1.00],
+    sinker_03: [1.00, 1.00, 1.10, 1.10],
+    sinker_05: [1.00, 1.00, 1.00, 1.30],
+  };
+  const wrong = [];
+  for (const [id, nums] of Object.entries(want)) {
+    const m = new RegExp('ITEMS\\.register\\("' + id + '"[\\s\\S]{0,260}?SinkerItem\\(partProps\\([^)]*\\)((?:\\s*,\\s*[0-9.]+)+)\\)').exec(items);
+    if (!m) { wrong.push(id + '（找不到注册）'); continue; }
+    const got = m[1].split(',').map((s) => s.trim()).filter((s) => s.length > 0).map(Number);
+    if (got.length !== 4 || got.some((v, i) => Math.abs(v - nums[i]) > 1e-9)) {
+      wrong.push(id + ' 期望 [' + nums.join(', ') + '] 实际 [' + got.join(', ') + ']');
+    }
+  }
+  if (wrong.length) fail('铅锤倍率与策划案不一致：' + wrong.join('；'));
+  else ok('6 种铅锤的倍率与策划案 §4 逐项一致');
+}
+
+
 console.log('');
 console.log(bad === 0 ? '✅ 水层数据自洽（生成物未被手改、47 条齐全、四层都有鱼、语言键齐）' : '❌ 水层检查未通过（' + bad + ' 项）');
 process.exitCode = bad === 0 ? 0 : 1;

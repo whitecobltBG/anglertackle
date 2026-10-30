@@ -3926,6 +3926,28 @@ const CASES = [
   // ---- 2026-10-30：窝料渲染距离不许退回"包围盒×64"那种十几格 ----
 
   // ---- 2026-10-30：水层生成物不许手改（手改会让"改 json 不生成"悄悄生效）----
+
+  // ---- 2026-10-30：铅锤倍率不许改错数量级（+30% 写成 +3% 玩家根本感觉不到）----
+  { dir: 'sinker-bonus-wrong-value', checker: 'check-fish-layers.js', expect: 1,
+    desc: '把 g8 的浅层倍率从 1.30 改成 1.03 —— 与策划案 §4 不符',
+    mutate: (at) => {
+      const F = 'src/main/java/com/whitecobalt/anglertackle/registry/ModItems.java';
+      at.set(F, mustReplace(at.get(F),
+        'new SinkerItem(partProps(0, Rarity.COMMON, PartStats.NEUTRAL), 1.30, 1.00, 1.00, 1.00)',
+        'new SinkerItem(partProps(0, Rarity.COMMON, PartStats.NEUTRAL), 1.03, 1.00, 1.00, 1.00)',
+        'sinker-bonus-wrong-value'));
+    } },
+
+  // ---- 2026-10-30：铅锤不许影响台钓 ----
+  { dir: 'sinker-applies-to-float', checker: 'check-fish-layers.js', expect: 1,
+    desc: '把"仅路亚"门禁去掉 —— 台钓也会被铅锤改权重（用户定案铅锤仅路亚可用）',
+    mutate: (at) => {
+      const F = 'src/main/java/com/whitecobalt/anglertackle/fishing/FishingSession.java';
+      at.set(F, mustReplace(at.get(F),
+        'if (rodKind() == FishSpecies.RodKind.LURE) {',
+        'if (true) {',
+        'sinker-applies-to-float'));
+    } },
   { dir: 'fish-layer-handedited', checker: 'check-fish-layers.js', expect: 1,
     desc: '直接手改 FishLayers.java 里一条鱼的层 —— 生成物与 json 脱钩，之后改 json 不重跑生成器也不报错',
     mutate: (at) => {
