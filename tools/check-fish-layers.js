@@ -103,8 +103,8 @@ const strip = (s) => s.replace(/\/\/[^\n]*/g, ' ').replace(/\/\*[\s\S]*?\*\//g, 
     sinker_g2: [1.05, 1.20, 1.00, 1.00],
     sinker_3b: [1.00, 1.30, 1.00, 1.00],
     sinker_5b: [1.00, 1.05, 1.20, 1.00],
-    sinker_03: [1.00, 1.00, 1.05, 1.20],
-    sinker_05: [1.00, 1.00, 1.00, 1.30],
+    sinker_03: [1.00, 1.00, 1.20, 1.05],
+    sinker_05: [1.00, 1.00, 1.05, 1.20],
   };
   const wrong = [];
   for (const [id, nums] of Object.entries(want)) {

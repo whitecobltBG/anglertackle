@@ -261,13 +261,13 @@ public final class ModItems {
     public static final DeferredItem<SinkerItem> SINKER_5B = ITEMS.register("sinker_5b",
             () -> new SinkerItem(partProps(0, Rarity.UNCOMMON, PartStats.NEUTRAL), 1.00, 1.05, 1.20, 1.00));
 
-    /** 0.3号铅锤 · 中通铅：底层 ×1.05、贴底 ×1.20（2026-10-30 用户改：10/10 → 5/20）。 */
+    /** 0.3号铅锤 · 中通铅：底层 ×1.20、贴底 ×1.05（2026-10-30 用户定：20/5）。 */
     public static final DeferredItem<SinkerItem> SINKER_03 = ITEMS.register("sinker_03",
-            () -> new SinkerItem(partProps(0, Rarity.UNCOMMON, PartStats.NEUTRAL), 1.00, 1.00, 1.05, 1.20));
+            () -> new SinkerItem(partProps(0, Rarity.UNCOMMON, PartStats.NEUTRAL), 1.00, 1.00, 1.20, 1.05));
 
-    /** 0.5号铅锤 · 中通铅：贴底 ×1.30。 */
+    /** 0.5号铅锤 · 中通铅：底层 ×1.05、贴底 ×1.20（2026-10-30 用户定：5/20）。 */
     public static final DeferredItem<SinkerItem> SINKER_05 = ITEMS.register("sinker_05",
-            () -> new SinkerItem(partProps(0, Rarity.RARE, PartStats.NEUTRAL), 1.00, 1.00, 1.00, 1.30));
+            () -> new SinkerItem(partProps(0, Rarity.RARE, PartStats.NEUTRAL), 1.00, 1.00, 1.05, 1.20));
 
     // ------------------------------------------------------------------ ⑥ 浮漂【已删除】
     // 木浮漂 / 荧光漂两个物品已移除（用户定案："去掉这个功能，目前没看到两配件作用"）。
