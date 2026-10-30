@@ -75,8 +75,6 @@ const ITEMS = [
         { key: 'rod' + K + 'MaxWeightKg', cn: cn + ' · 承重上限', unit: 'kg', def: Number(wt),
           min: 0, max: 1000, type: 'double',
           desc: '这根竿能钓多重的鱼（0 = 不限）。⚠ 这是硬闸门：超过的鱼**钓不上来**' },
-        { key: 'rod' + K + 'HookWindowBonus', cn: cn + ' · 提竿窗口加成', unit: '秒', def: Number(win),
-          min: 0, max: 5, type: 'double', desc: '加到基础提竿窗口上的秒数' },
         { key: 'rod' + K + 'TensionCeiling', cn: cn + ' · 张力上限倍率', unit: '', def: Number(ceil),
           min: 0, max: 10, type: 'double', desc: '与鱼线按权重合成，决定"线绷到多少会断"' },
         { key: 'rod' + K + 'TensionRecover', cn: cn + ' · 张力回复倍率', unit: '', def: Number(rec),

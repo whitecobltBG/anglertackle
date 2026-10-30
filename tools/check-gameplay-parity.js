@@ -143,13 +143,17 @@ else {
 }
 
 let miss = 0;
+// 2026-10-30：这 5 项"竿 · 提竿窗口加成"随鱼钩一起删除（已经没有代码读它们）。
+const SKIP_WINDOW = new Set(['rodWoodHookWindowBonus', 'rodIronHookWindowBonus',
+  'rodGoldHookWindowBonus', 'rodDiamondHookWindowBonus', 'rodNetheriteHookWindowBonus']);
 for (const [k, want] of Object.entries(EXPECT)) {
+  if (SKIP_WINDOW.has(k)) continue;
   if (!got.has(k)) { no('缺少配置项 ' + k + '（原值 ' + want + '）'); miss++; continue; }
   if (Math.abs(got.get(k) - want) > 1e-9) {
     no('默认值漂移 ' + k + '：原 ' + want + ' → ' + got.get(k)); miss++;
   }
 }
-for (const k of got.keys()) if (!(k in EXPECT)) { no('多出配置项 ' + k); miss++; }
+for (const k of got.keys()) if (!(k in EXPECT) && !SKIP_WINDOW.has(k)) { no('多出配置项 ' + k); miss++; }
 if (!miss) ok('玩法数值 ' + got.size + ' 项默认值与接线前的源码原值逐位相同');
 
 // ---------------------------------------------------------------- ② 承重回归测试

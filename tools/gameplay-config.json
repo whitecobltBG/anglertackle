@@ -8,12 +8,6 @@
       "type": "double"
     },
     {
-      "key": "rodWoodHookWindowBonus",
-      "cn": "木竿 · 提竿窗口加成",
-      "def": 0,
-      "type": "double"
-    },
-    {
       "key": "rodWoodTensionCeiling",
       "cn": "木竿 · 张力上限倍率",
       "def": 1,
@@ -47,12 +41,6 @@
       "key": "rodIronMaxWeightKg",
       "cn": "铁竿 · 承重上限",
       "def": 30,
-      "type": "double"
-    },
-    {
-      "key": "rodIronHookWindowBonus",
-      "cn": "铁竿 · 提竿窗口加成",
-      "def": 0.1,
       "type": "double"
     },
     {
@@ -92,12 +80,6 @@
       "type": "double"
     },
     {
-      "key": "rodGoldHookWindowBonus",
-      "cn": "金竿 · 提竿窗口加成",
-      "def": 0.25,
-      "type": "double"
-    },
-    {
       "key": "rodGoldTensionCeiling",
       "cn": "金竿 · 张力上限倍率",
       "def": 1.1,
@@ -134,12 +116,6 @@
       "type": "double"
     },
     {
-      "key": "rodDiamondHookWindowBonus",
-      "cn": "钻石竿 · 提竿窗口加成",
-      "def": 0.2,
-      "type": "double"
-    },
-    {
       "key": "rodDiamondTensionCeiling",
       "cn": "钻石竿 · 张力上限倍率",
       "def": 1.6,
@@ -173,12 +149,6 @@
       "key": "rodNetheriteMaxWeightKg",
       "cn": "下界合金竿 · 承重上限",
       "def": 999,
-      "type": "double"
-    },
-    {
-      "key": "rodNetheriteHookWindowBonus",
-      "cn": "下界合金竿 · 提竿窗口加成",
-      "def": 0.3,
       "type": "double"
     },
     {

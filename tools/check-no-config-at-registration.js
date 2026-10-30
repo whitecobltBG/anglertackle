@@ -188,8 +188,8 @@ if (!bad) ok('检查了 ' + checked + ' 个 registry 文件，注册期没有任
       }
       const accessors = body.slice(body.indexOf('private final Material material'));
       const n = (accessors.match(/Tuning\.rod\w+\(\)/g) || []).length;
-      if (n >= 35) ok('RodSpec 的取值方法里有 ' + n + ' 处现查 Tuning（7 项 × 5 材质）');
-      else no('RodSpec 只有 ' + n + ' 处 Tuning 调用（应为 35 = 7 项 × 5 材质）—— 可能漏了某项');
+      if (n >= 30) ok('RodSpec 的取值方法里有 ' + n + ' 处现查 Tuning（6 项 × 5 材质）');
+      else no('RodSpec 只有 ' + n + ' 处 Tuning 调用（应为 30 = 6 项 × 5 材质）—— 可能漏了某项');
     }
   }
 }

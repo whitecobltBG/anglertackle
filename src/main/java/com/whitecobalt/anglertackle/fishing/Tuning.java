@@ -1442,35 +1442,30 @@ public final class Tuning {
     // @tuning-slot: gameReload
         // ==== BEGIN 玩法数值热重载（生成，勿手改）====
         putDoubleValue(flat, "gameplay.rodWoodMaxWeightKg", c.rodWoodMaxWeightKg, counter);
-        putDoubleValue(flat, "gameplay.rodWoodHookWindowBonus", c.rodWoodHookWindowBonus, counter);
         putDoubleValue(flat, "gameplay.rodWoodTensionCeiling", c.rodWoodTensionCeiling, counter);
         putDoubleValue(flat, "gameplay.rodWoodTensionRecover", c.rodWoodTensionRecover, counter);
         putDoubleValue(flat, "gameplay.rodWoodStaminaDrain", c.rodWoodStaminaDrain, counter);
         putDoubleValue(flat, "gameplay.rodWoodMaterialFactor", c.rodWoodMaterialFactor, counter);
         putIntValue(flat, "gameplay.rodWoodTier", c.rodWoodTier, counter);
         putDoubleValue(flat, "gameplay.rodIronMaxWeightKg", c.rodIronMaxWeightKg, counter);
-        putDoubleValue(flat, "gameplay.rodIronHookWindowBonus", c.rodIronHookWindowBonus, counter);
         putDoubleValue(flat, "gameplay.rodIronTensionCeiling", c.rodIronTensionCeiling, counter);
         putDoubleValue(flat, "gameplay.rodIronTensionRecover", c.rodIronTensionRecover, counter);
         putDoubleValue(flat, "gameplay.rodIronStaminaDrain", c.rodIronStaminaDrain, counter);
         putDoubleValue(flat, "gameplay.rodIronMaterialFactor", c.rodIronMaterialFactor, counter);
         putIntValue(flat, "gameplay.rodIronTier", c.rodIronTier, counter);
         putDoubleValue(flat, "gameplay.rodGoldMaxWeightKg", c.rodGoldMaxWeightKg, counter);
-        putDoubleValue(flat, "gameplay.rodGoldHookWindowBonus", c.rodGoldHookWindowBonus, counter);
         putDoubleValue(flat, "gameplay.rodGoldTensionCeiling", c.rodGoldTensionCeiling, counter);
         putDoubleValue(flat, "gameplay.rodGoldTensionRecover", c.rodGoldTensionRecover, counter);
         putDoubleValue(flat, "gameplay.rodGoldStaminaDrain", c.rodGoldStaminaDrain, counter);
         putDoubleValue(flat, "gameplay.rodGoldMaterialFactor", c.rodGoldMaterialFactor, counter);
         putIntValue(flat, "gameplay.rodGoldTier", c.rodGoldTier, counter);
         putDoubleValue(flat, "gameplay.rodDiamondMaxWeightKg", c.rodDiamondMaxWeightKg, counter);
-        putDoubleValue(flat, "gameplay.rodDiamondHookWindowBonus", c.rodDiamondHookWindowBonus, counter);
         putDoubleValue(flat, "gameplay.rodDiamondTensionCeiling", c.rodDiamondTensionCeiling, counter);
         putDoubleValue(flat, "gameplay.rodDiamondTensionRecover", c.rodDiamondTensionRecover, counter);
         putDoubleValue(flat, "gameplay.rodDiamondStaminaDrain", c.rodDiamondStaminaDrain, counter);
         putDoubleValue(flat, "gameplay.rodDiamondMaterialFactor", c.rodDiamondMaterialFactor, counter);
         putIntValue(flat, "gameplay.rodDiamondTier", c.rodDiamondTier, counter);
         putDoubleValue(flat, "gameplay.rodNetheriteMaxWeightKg", c.rodNetheriteMaxWeightKg, counter);
-        putDoubleValue(flat, "gameplay.rodNetheriteHookWindowBonus", c.rodNetheriteHookWindowBonus, counter);
         putDoubleValue(flat, "gameplay.rodNetheriteTensionCeiling", c.rodNetheriteTensionCeiling, counter);
         putDoubleValue(flat, "gameplay.rodNetheriteTensionRecover", c.rodNetheriteTensionRecover, counter);
         putDoubleValue(flat, "gameplay.rodNetheriteStaminaDrain", c.rodNetheriteStaminaDrain, counter);
@@ -2356,35 +2351,30 @@ public final class Tuning {
     // @tuning-slot: gameGetter
     // ==== BEGIN 玩法数值 getter（生成，勿手改）====
     public static double rodWoodMaxWeightKg() { return cfg().rodWoodMaxWeightKg.get(); }
-    public static double rodWoodHookWindowBonus() { return cfg().rodWoodHookWindowBonus.get(); }
     public static double rodWoodTensionCeiling() { return cfg().rodWoodTensionCeiling.get(); }
     public static double rodWoodTensionRecover() { return cfg().rodWoodTensionRecover.get(); }
     public static double rodWoodStaminaDrain() { return cfg().rodWoodStaminaDrain.get(); }
     public static double rodWoodMaterialFactor() { return cfg().rodWoodMaterialFactor.get(); }
     public static int rodWoodTier() { return cfg().rodWoodTier.get(); }
     public static double rodIronMaxWeightKg() { return cfg().rodIronMaxWeightKg.get(); }
-    public static double rodIronHookWindowBonus() { return cfg().rodIronHookWindowBonus.get(); }
     public static double rodIronTensionCeiling() { return cfg().rodIronTensionCeiling.get(); }
     public static double rodIronTensionRecover() { return cfg().rodIronTensionRecover.get(); }
     public static double rodIronStaminaDrain() { return cfg().rodIronStaminaDrain.get(); }
     public static double rodIronMaterialFactor() { return cfg().rodIronMaterialFactor.get(); }
     public static int rodIronTier() { return cfg().rodIronTier.get(); }
     public static double rodGoldMaxWeightKg() { return cfg().rodGoldMaxWeightKg.get(); }
-    public static double rodGoldHookWindowBonus() { return cfg().rodGoldHookWindowBonus.get(); }
     public static double rodGoldTensionCeiling() { return cfg().rodGoldTensionCeiling.get(); }
     public static double rodGoldTensionRecover() { return cfg().rodGoldTensionRecover.get(); }
     public static double rodGoldStaminaDrain() { return cfg().rodGoldStaminaDrain.get(); }
     public static double rodGoldMaterialFactor() { return cfg().rodGoldMaterialFactor.get(); }
     public static int rodGoldTier() { return cfg().rodGoldTier.get(); }
     public static double rodDiamondMaxWeightKg() { return cfg().rodDiamondMaxWeightKg.get(); }
-    public static double rodDiamondHookWindowBonus() { return cfg().rodDiamondHookWindowBonus.get(); }
     public static double rodDiamondTensionCeiling() { return cfg().rodDiamondTensionCeiling.get(); }
     public static double rodDiamondTensionRecover() { return cfg().rodDiamondTensionRecover.get(); }
     public static double rodDiamondStaminaDrain() { return cfg().rodDiamondStaminaDrain.get(); }
     public static double rodDiamondMaterialFactor() { return cfg().rodDiamondMaterialFactor.get(); }
     public static int rodDiamondTier() { return cfg().rodDiamondTier.get(); }
     public static double rodNetheriteMaxWeightKg() { return cfg().rodNetheriteMaxWeightKg.get(); }
-    public static double rodNetheriteHookWindowBonus() { return cfg().rodNetheriteHookWindowBonus.get(); }
     public static double rodNetheriteTensionCeiling() { return cfg().rodNetheriteTensionCeiling.get(); }
     public static double rodNetheriteTensionRecover() { return cfg().rodNetheriteTensionRecover.get(); }
     public static double rodNetheriteStaminaDrain() { return cfg().rodNetheriteStaminaDrain.get(); }

@@ -145,10 +145,10 @@ else if (hits.length) {
     .find((s) => s.includes('class com.whitecobalt.anglertackle.item.RodItem$RodSpec {')) || '';
   const n = (rodBody.match(/\/\/ Method com\/whitecobalt\/anglertackle\/fishing\/Tuning\.rod\w+:\(\)D/g) || []).length;
   const ti = (rodBody.match(/\/\/ Method com\/whitecobalt\/anglertackle\/fishing\/Tuning\.rod\w+:\(\)I/g) || []).length;
-  if (n + ti >= 35) {
-    ok('RodSpec 的取值方法里实打实有 ' + (n + ti) + ' 处 invokestatic 到 Tuning.rod*（7 项 × 5 材质）');
+  if (n + ti >= 30) {
+    ok('RodSpec 的取值方法里实打实有 ' + (n + ti) + ' 处 invokestatic 到 Tuning.rod*（6 项 × 5 材质）');
   } else {
-    no('RodSpec 里只有 ' + (n + ti) + ' 处 Tuning.rod* 调用（应为 35）');
+    no('RodSpec 里只有 ' + (n + ti) + ' 处 Tuning.rod* 调用（应为 30）');
   }
 }
 

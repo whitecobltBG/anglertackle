@@ -482,15 +482,6 @@ public class RodItem extends Item implements HasQuality {
             };
         }
 
-        public double hookWindowBonus() {
-            return switch (material) {
-                case WOOD -> Tuning.rodWoodHookWindowBonus();
-                case IRON -> Tuning.rodIronHookWindowBonus();
-                case GOLD -> Tuning.rodGoldHookWindowBonus();
-                case DIAMOND -> Tuning.rodDiamondHookWindowBonus();
-                case NETHERITE -> Tuning.rodNetheriteHookWindowBonus();
-            };
-        }
 
         public double tensionCeiling() {
             return switch (material) {
@@ -557,8 +548,8 @@ public class RodItem extends Item implements HasQuality {
         @Override
         public String toString() {
             return "RodSpec[" + material.cn + " 耐久=" + material.maxDurability +
-                    " 承重=" + maxWeightKg() + "kg 窗口+" + hookWindowBonus() +
-                    "s 张力上限=" + tensionCeiling() + " 张力回复=" + tensionRecover() +
+                    " 承重=" + maxWeightKg() +
+                    "kg 张力上限=" + tensionCeiling() + " 张力回复=" + tensionRecover() +
                     " 体力削减=" + staminaDrain() + " 损耗系数=" + materialFactor() +
                     " 档位上限=" + tier() + "]";
         }

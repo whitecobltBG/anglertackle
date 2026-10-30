@@ -945,35 +945,30 @@ public final class Config {
 
     // ==== BEGIN 玩法数值声明 ====
     public final ModConfigSpec.DoubleValue rodWoodMaxWeightKg;
-    public final ModConfigSpec.DoubleValue rodWoodHookWindowBonus;
     public final ModConfigSpec.DoubleValue rodWoodTensionCeiling;
     public final ModConfigSpec.DoubleValue rodWoodTensionRecover;
     public final ModConfigSpec.DoubleValue rodWoodStaminaDrain;
     public final ModConfigSpec.DoubleValue rodWoodMaterialFactor;
     public final ModConfigSpec.IntValue rodWoodTier;
     public final ModConfigSpec.DoubleValue rodIronMaxWeightKg;
-    public final ModConfigSpec.DoubleValue rodIronHookWindowBonus;
     public final ModConfigSpec.DoubleValue rodIronTensionCeiling;
     public final ModConfigSpec.DoubleValue rodIronTensionRecover;
     public final ModConfigSpec.DoubleValue rodIronStaminaDrain;
     public final ModConfigSpec.DoubleValue rodIronMaterialFactor;
     public final ModConfigSpec.IntValue rodIronTier;
     public final ModConfigSpec.DoubleValue rodGoldMaxWeightKg;
-    public final ModConfigSpec.DoubleValue rodGoldHookWindowBonus;
     public final ModConfigSpec.DoubleValue rodGoldTensionCeiling;
     public final ModConfigSpec.DoubleValue rodGoldTensionRecover;
     public final ModConfigSpec.DoubleValue rodGoldStaminaDrain;
     public final ModConfigSpec.DoubleValue rodGoldMaterialFactor;
     public final ModConfigSpec.IntValue rodGoldTier;
     public final ModConfigSpec.DoubleValue rodDiamondMaxWeightKg;
-    public final ModConfigSpec.DoubleValue rodDiamondHookWindowBonus;
     public final ModConfigSpec.DoubleValue rodDiamondTensionCeiling;
     public final ModConfigSpec.DoubleValue rodDiamondTensionRecover;
     public final ModConfigSpec.DoubleValue rodDiamondStaminaDrain;
     public final ModConfigSpec.DoubleValue rodDiamondMaterialFactor;
     public final ModConfigSpec.IntValue rodDiamondTier;
     public final ModConfigSpec.DoubleValue rodNetheriteMaxWeightKg;
-    public final ModConfigSpec.DoubleValue rodNetheriteHookWindowBonus;
     public final ModConfigSpec.DoubleValue rodNetheriteTensionCeiling;
     public final ModConfigSpec.DoubleValue rodNetheriteTensionRecover;
     public final ModConfigSpec.DoubleValue rodNetheriteStaminaDrain;
@@ -3713,9 +3708,6 @@ public final class Config {
         rodWoodMaxWeightKg = b
                 .comment("木竿 · 承重上限（kg） —— 这根竿能钓多重的鱼（0 = 不限）。⚠ 这是硬闸门：超过的鱼**钓不上来**")
                 .defineInRange("rodWoodMaxWeightKg", 8.0, 0, 1000);
-        rodWoodHookWindowBonus = b
-                .comment("木竿 · 提竿窗口加成（秒） —— 加到基础提竿窗口上的秒数")
-                .defineInRange("rodWoodHookWindowBonus", 0.0, 0, 5);
         rodWoodTensionCeiling = b
                 .comment("木竿 · 张力上限倍率 —— 与鱼线按权重合成，决定\"线绷到多少会断\"")
                 .defineInRange("rodWoodTensionCeiling", 1.0, 0, 10);
@@ -3734,9 +3726,6 @@ public final class Config {
         rodIronMaxWeightKg = b
                 .comment("铁竿 · 承重上限（kg） —— 这根竿能钓多重的鱼（0 = 不限）。⚠ 这是硬闸门：超过的鱼**钓不上来**")
                 .defineInRange("rodIronMaxWeightKg", 30.0, 0, 1000);
-        rodIronHookWindowBonus = b
-                .comment("铁竿 · 提竿窗口加成（秒） —— 加到基础提竿窗口上的秒数")
-                .defineInRange("rodIronHookWindowBonus", 0.1, 0, 5);
         rodIronTensionCeiling = b
                 .comment("铁竿 · 张力上限倍率 —— 与鱼线按权重合成，决定\"线绷到多少会断\"")
                 .defineInRange("rodIronTensionCeiling", 1.2, 0, 10);
@@ -3755,9 +3744,6 @@ public final class Config {
         rodGoldMaxWeightKg = b
                 .comment("金竿 · 承重上限（kg） —— 这根竿能钓多重的鱼（0 = 不限）。⚠ 这是硬闸门：超过的鱼**钓不上来**")
                 .defineInRange("rodGoldMaxWeightKg", 21.0, 0, 1000);
-        rodGoldHookWindowBonus = b
-                .comment("金竿 · 提竿窗口加成（秒） —— 加到基础提竿窗口上的秒数")
-                .defineInRange("rodGoldHookWindowBonus", 0.25, 0, 5);
         rodGoldTensionCeiling = b
                 .comment("金竿 · 张力上限倍率 —— 与鱼线按权重合成，决定\"线绷到多少会断\"")
                 .defineInRange("rodGoldTensionCeiling", 1.1, 0, 10);
@@ -3776,9 +3762,6 @@ public final class Config {
         rodDiamondMaxWeightKg = b
                 .comment("钻石竿 · 承重上限（kg） —— 这根竿能钓多重的鱼（0 = 不限）。⚠ 这是硬闸门：超过的鱼**钓不上来**")
                 .defineInRange("rodDiamondMaxWeightKg", 50.0, 0, 1000);
-        rodDiamondHookWindowBonus = b
-                .comment("钻石竿 · 提竿窗口加成（秒） —— 加到基础提竿窗口上的秒数")
-                .defineInRange("rodDiamondHookWindowBonus", 0.2, 0, 5);
         rodDiamondTensionCeiling = b
                 .comment("钻石竿 · 张力上限倍率 —— 与鱼线按权重合成，决定\"线绷到多少会断\"")
                 .defineInRange("rodDiamondTensionCeiling", 1.6, 0, 10);
@@ -3797,9 +3780,6 @@ public final class Config {
         rodNetheriteMaxWeightKg = b
                 .comment("下界合金竿 · 承重上限（kg） —— 这根竿能钓多重的鱼（0 = 不限）。⚠ 这是硬闸门：超过的鱼**钓不上来**")
                 .defineInRange("rodNetheriteMaxWeightKg", 999.0, 0, 1000);
-        rodNetheriteHookWindowBonus = b
-                .comment("下界合金竿 · 提竿窗口加成（秒） —— 加到基础提竿窗口上的秒数")
-                .defineInRange("rodNetheriteHookWindowBonus", 0.3, 0, 5);
         rodNetheriteTensionCeiling = b
                 .comment("下界合金竿 · 张力上限倍率 —— 与鱼线按权重合成，决定\"线绷到多少会断\"")
                 .defineInRange("rodNetheriteTensionCeiling", 1.7, 0, 10);

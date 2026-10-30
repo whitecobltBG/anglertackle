@@ -7415,15 +7415,6 @@
           "label": "木竿 · 承重上限（kg）"
         },
         {
-          "key": "rodWoodHookWindowBonus",
-          "def": 0,
-          "min": 0,
-          "max": 5,
-          "type": "double",
-          "comment": "木竿 · 提竿窗口加成（秒） —— 加到基础提竿窗口上的秒数",
-          "label": "木竿 · 提竿窗口加成（秒）"
-        },
-        {
           "key": "rodWoodTensionCeiling",
           "def": 1,
           "min": 0,
@@ -7476,15 +7467,6 @@
           "type": "double",
           "comment": "铁竿 · 承重上限（kg） —— 这根竿能钓多重的鱼（0 = 不限）。⚠ 这是硬闸门：超过的鱼**钓不上来**",
           "label": "铁竿 · 承重上限（kg）"
-        },
-        {
-          "key": "rodIronHookWindowBonus",
-          "def": 0.1,
-          "min": 0,
-          "max": 5,
-          "type": "double",
-          "comment": "铁竿 · 提竿窗口加成（秒） —— 加到基础提竿窗口上的秒数",
-          "label": "铁竿 · 提竿窗口加成（秒）"
         },
         {
           "key": "rodIronTensionCeiling",
@@ -7541,15 +7523,6 @@
           "label": "金竿 · 承重上限（kg）"
         },
         {
-          "key": "rodGoldHookWindowBonus",
-          "def": 0.25,
-          "min": 0,
-          "max": 5,
-          "type": "double",
-          "comment": "金竿 · 提竿窗口加成（秒） —— 加到基础提竿窗口上的秒数",
-          "label": "金竿 · 提竿窗口加成（秒）"
-        },
-        {
           "key": "rodGoldTensionCeiling",
           "def": 1.1,
           "min": 0,
@@ -7604,15 +7577,6 @@
           "label": "钻石竿 · 承重上限（kg）"
         },
         {
-          "key": "rodDiamondHookWindowBonus",
-          "def": 0.2,
-          "min": 0,
-          "max": 5,
-          "type": "double",
-          "comment": "钻石竿 · 提竿窗口加成（秒） —— 加到基础提竿窗口上的秒数",
-          "label": "钻石竿 · 提竿窗口加成（秒）"
-        },
-        {
           "key": "rodDiamondTensionCeiling",
           "def": 1.6,
           "min": 0,
@@ -7665,15 +7629,6 @@
           "type": "double",
           "comment": "下界合金竿 · 承重上限（kg） —— 这根竿能钓多重的鱼（0 = 不限）。⚠ 这是硬闸门：超过的鱼**钓不上来**",
           "label": "下界合金竿 · 承重上限（kg）"
-        },
-        {
-          "key": "rodNetheriteHookWindowBonus",
-          "def": 0.3,
-          "min": 0,
-          "max": 5,
-          "type": "double",
-          "comment": "下界合金竿 · 提竿窗口加成（秒） —— 加到基础提竿窗口上的秒数",
-          "label": "下界合金竿 · 提竿窗口加成（秒）"
         },
         {
           "key": "rodNetheriteTensionCeiling",

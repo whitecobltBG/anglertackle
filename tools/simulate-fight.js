@@ -164,7 +164,7 @@ function readRod(material) {
     staminaDrain: g('StaminaDrain'),
     materialFactor: g('MaterialFactor'),
     maxWeightKg: g('MaxWeightKg'),
-    hookWindowBonus: g('HookWindowBonus'),
+    // hookWindowBonus 随鱼钩一起删除（2026-10-30），这里不再读。
   };
 }
 
