@@ -3933,8 +3933,8 @@ const CASES = [
     mutate: (at) => {
       const F = 'src/main/java/com/whitecobalt/anglertackle/registry/ModItems.java';
       at.set(F, mustReplace(at.get(F),
-        'new SinkerItem(partProps(0, Rarity.COMMON, PartStats.NEUTRAL), 1.30, 1.00, 1.00, 1.00)',
-        'new SinkerItem(partProps(0, Rarity.COMMON, PartStats.NEUTRAL), 1.03, 1.00, 1.00, 1.00)',
+        'new SinkerItem(partProps(0, Rarity.UNCOMMON, PartStats.NEUTRAL), 1.30, 1.00, 1.00, 1.00)',
+        'new SinkerItem(partProps(0, Rarity.UNCOMMON, PartStats.NEUTRAL), 1.03, 1.00, 1.00, 1.00)',
         'sinker-bonus-wrong-value'));
     } },
 

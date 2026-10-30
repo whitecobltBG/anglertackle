@@ -247,11 +247,11 @@ public final class ModItems {
 
     /** g8 铅锤 · ガン玉 8号：浅层 ×1.30。 */
     public static final DeferredItem<SinkerItem> SINKER_G8 = ITEMS.register("sinker_g8",
-            () -> new SinkerItem(partProps(0, Rarity.COMMON, PartStats.NEUTRAL), 1.30, 1.00, 1.00, 1.00));
+            () -> new SinkerItem(partProps(0, Rarity.UNCOMMON, PartStats.NEUTRAL), 1.30, 1.00, 1.00, 1.00));
 
     /** g2 铅锤 · ガン玉 2号：浅层 ×1.05、中层 ×1.20。 */
     public static final DeferredItem<SinkerItem> SINKER_G2 = ITEMS.register("sinker_g2",
-            () -> new SinkerItem(partProps(0, Rarity.COMMON, PartStats.NEUTRAL), 1.05, 1.20, 1.00, 1.00));
+            () -> new SinkerItem(partProps(0, Rarity.UNCOMMON, PartStats.NEUTRAL), 1.05, 1.20, 1.00, 1.00));
 
     /** 3b 铅锤 · B 系咬铅 3B：中层 ×1.30。 */
     public static final DeferredItem<SinkerItem> SINKER_3B = ITEMS.register("sinker_3b",
@@ -267,7 +267,7 @@ public final class ModItems {
 
     /** 0.5号铅锤 · 中通铅：底层 ×1.05、贴底 ×1.20（2026-10-30 用户定：5/20）。 */
     public static final DeferredItem<SinkerItem> SINKER_05 = ITEMS.register("sinker_05",
-            () -> new SinkerItem(partProps(0, Rarity.RARE, PartStats.NEUTRAL), 1.00, 1.00, 1.05, 1.20));
+            () -> new SinkerItem(partProps(0, Rarity.UNCOMMON, PartStats.NEUTRAL), 1.00, 1.00, 1.05, 1.20));
 
     // ------------------------------------------------------------------ ⑥ 浮漂【已删除】
     // 木浮漂 / 荧光漂两个物品已移除（用户定案："去掉这个功能，目前没看到两配件作用"）。
