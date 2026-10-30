@@ -1028,5 +1028,6 @@
   "item.anglertackle.sinker_5b": "5b 铅锤",
   "item.anglertackle.sinker_03": "0.3号铅锤",
   "item.anglertackle.sinker_05": "0.5号铅锤",
-  "tooltip.anglertackle.sinker_bonus": "%s上鱼权重 +%s%%"
+  "tooltip.anglertackle.sinker_bonus": "%s上鱼权重 +%s%%",
+  "itemGroup.anglertackle.parts": "配件"
 }

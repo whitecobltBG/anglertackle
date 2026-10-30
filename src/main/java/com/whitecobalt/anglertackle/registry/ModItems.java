@@ -1393,7 +1393,6 @@ public final class ModItems {
                         //   上架前删除本行即可。
                         output.accept(STOOL.get());
                 output.accept(CUSHIONED_STOOL.get());
-                output.accept(TEST_LURE.get());
                 // 垂纶终端（2026-10-15）：一个入口收齐委托/图鉴/邮箱/成就/称号/商店/排行榜/联赛/比赛。
                 // 放最前面 —— 它是最该被找到的东西（与 TEST_LURE 同一条理由）。
                 output.accept(TERMINAL.get());
@@ -1408,25 +1407,6 @@ public final class ModItems {
                         output.accept(DIAMOND_LURE_ROD.get());
                         output.accept(NETHERITE_FLOAT_ROD.get());
                         output.accept(NETHERITE_LURE_ROD.get());
-                        // 鱼线：5 档
-                        output.accept(HEMP_LINE.get());
-                        output.accept(COTTON_LINE.get());
-                        output.accept(NYLON_LINE.get());
-                        output.accept(FLUORO_LINE.get());
-                        output.accept(PE_LINE.get());
-                        output.accept(TITANIUM_LINE.get());
-                        // 渔轮（5 档）/ 鱼钩（浮漂已删除）
-                        output.accept(HAND_REEL.get());
-                        output.accept(SPINNING_REEL.get());
-                        output.accept(DRUM_REEL.get());
-                        output.accept(BAITCAST_REEL.get());
-                        output.accept(HEAVY_REEL.get());
-                        output.accept(SINKER_G8.get());
-                        output.accept(SINKER_G2.get());
-                        output.accept(SINKER_3B.get());
-                        output.accept(SINKER_5B.get());
-                        output.accept(SINKER_03.get());
-                        output.accept(SINKER_05.get());
                         // 鱼获与教程书（按品质从低到高）
                         output.accept(CRUCIAN_CARP.get());
                         output.accept(TILAPIA.get());
@@ -1556,24 +1536,63 @@ public final class ModItems {
                         output.accept(COOKBOOK.get());
                         // 邮箱：邮件系统的主入口（docs/36 §5.7）
                         output.accept(MAILBOX.get());
-                        // 鱼饵（台钓/路亚通用）
+                    })
+                    .build());
+
+    /**
+     * 「配件」页签：所有**能装到竿上**的东西 —— 鱼线 / 渔轮 / 铅锤 / 拟饵 / 鱼饵 / 窝料。
+     *
+     * <p>为什么不留在主页面：主页面已经有 10 根竿、46 条鱼、一堆刷怪蛋与书，
+     * 而配件是"改装竿"这条玩法线自己的东西（2026-10-30 用户："整理一下创造模式的物品页面
+     * 使得配件等东西放在一个区域"）。拆出来以后主页面只剩"竿 / 鱼 / 工具"。
+     *
+     * <p>图标用 0.5号铅锤：它是最近一次加进来的配件，也最能代表"槽位系统"。
+     */
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> PARTS_TAB =
+            TABS.register("parts", () -> CreativeModeTab.builder()
+                    .title(Component.translatable("itemGroup.anglertackle.parts"))
+                    .icon(() -> new ItemStack(SINKER_05.get()))
+                    .displayItems((params, output) -> {
+                        // 鱼线（6 档，白→红）
+                        output.accept(HEMP_LINE.get());
+                        output.accept(COTTON_LINE.get());
+                        output.accept(NYLON_LINE.get());
+                        output.accept(FLUORO_LINE.get());
+                        output.accept(PE_LINE.get());
+                        output.accept(TITANIUM_LINE.get());
+                        // 渔轮（5 档）
+                        output.accept(HAND_REEL.get());
+                        output.accept(SPINNING_REEL.get());
+                        output.accept(DRUM_REEL.get());
+                        output.accept(BAITCAST_REEL.get());
+                        output.accept(HEAVY_REEL.get());
+                        // 铅锤（6 种，仅路亚；按水层从浅到深排）
+                        output.accept(SINKER_G8.get());
+                        output.accept(SINKER_G2.get());
+                        output.accept(SINKER_3B.get());
+                        output.accept(SINKER_5B.get());
+                        output.accept(SINKER_03.get());
+                        output.accept(SINKER_05.get());
+                        // 拟饵（路亚专用，绿→蓝→紫→金→红）
+                        output.accept(LURE_SPOON.get());
+                        output.accept(LURE_GLOWSPOON.get());
+                        output.accept(LURE_MINNOW.get());
+                        output.accept(LURE_SOFT.get());
+                        output.accept(LURE_DEPTHFINDER.get());
+                        output.accept(LURE_DEEP.get());
+                        output.accept(LURE_PADDLETAIL.get());
+                        output.accept(LURE_RATTLE.get());
+                        output.accept(LURE_VIBRATION.get());
+                        output.accept(LURE_GILDED.get());
+                        // 调试用测试拟饵：跟拟饵放一起，上架前删
+                        output.accept(TEST_LURE.get());
+                        // 鱼饵（台钓/路亚通用，6 档）
                         output.accept(BAIT_BREAD.get());
                         output.accept(BAIT_WORM.get());
                         output.accept(BAIT_CORN.get());
                         output.accept(BAIT_SHRIMP.get());
                         output.accept(BAIT_GLOW.get());
                         output.accept(BAIT_SECRET.get());
-                        // 拟饵（路亚专用，绿→蓝→紫→金→红）
-                        output.accept(LURE_SPOON.get());
-                        output.accept(LURE_GLOWSPOON.get());     // 绿档 · 同亮片数值（认 timid）
-                        output.accept(LURE_MINNOW.get());
-                        output.accept(LURE_SOFT.get());
-                        output.accept(LURE_DEPTHFINDER.get());   // 蓝档 · 同软虫数值
-                        output.accept(LURE_DEEP.get());
-                        output.accept(LURE_PADDLETAIL.get());    // 紫档 · 同浅层刺激拟饵数值
-                        output.accept(LURE_RATTLE.get());
-                        output.accept(LURE_VIBRATION.get());     // 金档 · 同钢珠声诱数值
-                        output.accept(LURE_GILDED.get());
                         // 窝料
                         output.accept(CHUM_GRAIN.get());
                         output.accept(CHUM_MEAT.get());

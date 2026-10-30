@@ -1028,5 +1028,6 @@
   "item.anglertackle.sinker_5b": "5b Sinker",
   "item.anglertackle.sinker_03": "No.0.3 Sinker",
   "item.anglertackle.sinker_05": "No.0.5 Sinker",
-  "tooltip.anglertackle.sinker_bonus": "%s catch weight +%s%%"
+  "tooltip.anglertackle.sinker_bonus": "%s catch weight +%s%%",
+  "itemGroup.anglertackle.parts": "Parts"
 }
