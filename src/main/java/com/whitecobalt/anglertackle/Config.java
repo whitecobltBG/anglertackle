@@ -1069,7 +1069,7 @@ public final class Config {
 
         // ------------------------------------------------------ 提竿窗口
         b.comment("提竿窗口 / Hook window（用户定案：基础 2.0 秒）").push("hookWindow");
-        hookWindowBase = b.comment("基础窗口秒数（鱼钩/鱼竿加成会再加到它上面）")
+        hookWindowBase = b.comment("基础窗口秒数（鱼钩已删除，现在只有这一个来源）")
                 .defineInRange("base", 2.0D, 0.05D, 5.0D);
         hookWindowMin = b.comment("窗口下限秒数（加成算完后不会低于它）")
                 .defineInRange("min", 1.0D, 0.05D, 5.0D);
@@ -4031,13 +4031,13 @@ public final class Config {
         ghostLineBeyondBlocks = b.comment("超过该距离改用简化线型（格）")
                 .defineInRange("ghostLineBeyondBlocks", 64, 8, 256);
         hookCameraFollow = b.comment("""
-                上钩后视角跟随鱼钩 / Camera follows the hook
+                上钩后视角跟随浮漂 / Camera follows the bobber
                 对抗期间把**渲染用**的相机朝向拉向浮漂。只改画面、不改玩家真实朝向
                 （不碰 setYRot/setXRot），所以瞄准、交互、服务端判定全都不受影响。
                 第一人称下生效；第三人称不动镜头（那是玩家自己在运镜）。""")
                 .define("hookCameraFollow", true);
         hookCameraFollowStrength = b.comment("""
-                跟随强度 0~1：1 = 完全对准鱼钩，0.5 = 只拉一半（还能用鼠标偏一点）
+                跟随强度 0~1：1 = 完全对准浮漂，0.5 = 只拉一半（还能用鼠标偏一点）
                 实际强度还会乘以一个约 0.25 秒的渐入，避免刚中鱼时镜头猛甩。""")
                 .defineInRange("hookCameraFollowStrength", 1.0, 0.0, 1.0);
         reelZoomPercent = b.comment("""

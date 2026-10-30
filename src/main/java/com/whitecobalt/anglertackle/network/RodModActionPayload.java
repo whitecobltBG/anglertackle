@@ -12,7 +12,7 @@ import net.minecraft.resources.ResourceLocation;
  * @param action    0 = 装上（从背包取该物品装到槽位）
  *                  1 = 卸下（把槽位里的部件退回背包）
  *                  2 = 请求刷新界面数据
- * @param slot      槽位序号 0–5（竿身/鱼线/渔轮/鱼钩/拟饵/浮漂）
+ * @param slot      槽位序号 0–5（竿身/鱼线/渔轮/铅锤/拟饵/浮漂）
  * @param itemId    要装的物品 id（action=0 时有效；空串表示自动挑第一个可用的）
  */
 public record RodModActionPayload(byte action, byte slot, String itemId) implements CustomPacketPayload {

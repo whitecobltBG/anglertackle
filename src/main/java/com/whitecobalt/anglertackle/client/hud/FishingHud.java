@@ -143,7 +143,7 @@ public final class FishingHud {
      *
      * <p>用户要求："钓鱼时能看到鱼竿各个配件耐久（有耐久定义的就显示）"。
      * 服务端只同步 {@code maxDamage > 0} 的配件（见 {@code FishingSession#partsDurabilitySnapshot}），
-     * 所以渔轮和鱼钩天然不出现，这里不用再判一次。
+     * 所以渔轮和铅锤天然不出现，这里不用再判一次。
      *
      * <p>画在屏幕左下角，避免和居中的张力条 / 体力条打架。
      * 每行 = 槽位名 + 迷你耐久条 + "剩余/上限"数字；

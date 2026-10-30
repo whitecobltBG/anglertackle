@@ -20,7 +20,7 @@ public final class ShopCatalog {
 
     /** 获取方式。 */
     public enum Kind {
-        /** 免费（白/绿鱼钩、麻线、手线轮）。 */
+        /** 免费（麻线、手线轮）。 */
         FREE,
         /** 花鱼币买。 */
         BUY,

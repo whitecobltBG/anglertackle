@@ -10,11 +10,11 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ViewportEvent;
 
 /**
- * 对抗期的相机：<b>视角跟随鱼钩</b> + <b>收线时再拉近一点</b>。
+ * 对抗期的相机：<b>视角跟随浮漂</b> + <b>收线时再拉近一点</b>。
  *
  * <p><b>用户口径（2026-10-01）</b>：
  * <ul>
- *   <li>"鱼上钩后视角跟着鱼钩跑" —— 中鱼之后镜头对准浮漂；</li>
+ *   <li>"鱼上钩后视角跟着浮漂跑" —— 中鱼之后镜头对准浮漂；</li>
  *   <li>"玩家点击左键收线时再轻微放大，松开放线回到上鱼时的放大水平"。</li>
  * </ul>
  *

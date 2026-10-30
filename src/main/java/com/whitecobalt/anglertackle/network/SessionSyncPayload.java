@@ -48,7 +48,7 @@ public record SessionSyncPayload(
         /**
          * 配件耐久：每项 {@code [槽位序号, 当前损耗, 耐久上限]} 三元组，扁平存放。
          *
-         * <p>只收"有耐久定义"的配件（{@code maxDamage > 0}）——渔轮和鱼钩在
+         * <p>只收"有耐久定义"的配件（{@code maxDamage > 0}）——渔轮和铅锤在
          * {@code ModItems.partProps} 里耐久是 0，它们根本不进这个列表，
          * HUD 上也不会出现（用户要求"有耐久定义的就显示"）。
          *

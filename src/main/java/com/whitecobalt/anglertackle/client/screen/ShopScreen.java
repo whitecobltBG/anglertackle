@@ -42,7 +42,7 @@ public class ShopScreen extends Screen {
     private static final int ROWS_PER_PAGE = 7;
 
     /** 分类标签行：7 个物品分类 + 1 个「等级评定」。 */
-    private static final String[] TABS = {"竿", "鱼线", "渔轮", "鱼钩", "拟饵", "鱼饵", "窝料", "等级评定", "卖鱼", "修杆", "兑换", "联赛"};
+    private static final String[] TABS = {"竿", "鱼线", "渔轮", "铅锤", "拟饵", "鱼饵", "窝料", "等级评定", "卖鱼", "修杆", "兑换", "联赛"};
 
     /** 「等级评定」和「卖鱼」不是物品分类，它们排在 7 个分类后面。 */
     private static final int TAB_RATING = 7;

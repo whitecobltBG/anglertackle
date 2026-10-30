@@ -10,7 +10,7 @@ import net.minecraft.world.item.TooltipFlag;
 import java.util.List;
 
 /**
- * 渔具配件（鱼线 / 渔轮 / 鱼钩 / 浮漂 / 拟饵）。
+ * 渔具配件（鱼线 / 渔轮 / 铅锤 / 拟饵）。
  *
  * <p>和鱼获共用 {@link Quality} 与 {@link HasQuality}：
  * 名字按品质着色，tooltip 里有一行"品质：X"。
@@ -23,7 +23,7 @@ public class TacklePartItem extends Item implements HasQuality {
      * <p><b>曾经有 ⑥ 浮漂槽，已删除</b>（用户定案："去掉这个功能，目前没看到两配件作用"）。
      * 浮漂的三个属性（灵敏度 / 预告可见度 / 夜间可见）**没有任何实现**，
      * 只在 tooltip 上显示数字，玩家装上完全没作用——与其留个假配件，不如拿掉。
-     * 鱼钩保留了，但只保留唯一真正生效的「提竿窗口」。
+     * 鱼钩后来也整条删除（2026-10-30）：④ 号槽改为**铅锤**，只影响水层权重，仅路亚可用。
      */
     public enum Slot {
         /** ② 鱼线：张力上限、张力生成系数、张力回复、线长 */

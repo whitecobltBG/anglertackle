@@ -1676,7 +1676,7 @@ public final class FishingSession {
      *
      * <p>扣的是鱼竿本体 + 配件堆栈（{@code RodParts} 里的鱼线 / 拟饵）。
      * 扣了多少记在 {@link #lastBiteCost}，供提前收回时原额退回。
-     * 渔轮和鱼钩在 {@code ModItems.partProps} 里耐久是 0（不设耐久上限），
+     * 渔轮和铅锤在 {@code ModItems.partProps} 里耐久是 0（不设耐久上限），
      * 天然不参与扣除——"有耐久定义的就显示/就消耗"这条规则自动成立。
      *
      * <p>⚠️ <b>顺序很关键（曾经写成错的）</b>：配件耐久存在**数据组件**里，
@@ -1886,7 +1886,7 @@ public final class FishingSession {
 
         // ---- 1. 先改配件组件（此时还没广播任何东西）----
         // 扣多少由 config 决定（durability.linePerBite / lurePerBite）。
-        // 渔轮和鱼钩在 ModItems.partProps 里耐久为 0（不设上限），天然不参与。
+        // 渔轮和铅锤在 ModItems.partProps 里耐久为 0（不设上限），天然不参与。
         var duraCfg = com.whitecobalt.anglertackle.Config.INSTANCE;
         int lineStep = Math.max(0, duraCfg.lineDurabilityPerBite.get());
         // ⚠ 这一项**同时管台钓饵和路亚拟饵**（名字里只有 lure 是历史原因，
@@ -3152,7 +3152,7 @@ public final class FishingSession {
     /**
      * 打包配件的耐久，给 HUD 显示用。
      *
-     * <p>只收 {@code maxDamage > 0} 的槽位：渔轮和鱼钩在 {@code ModItems.partProps}
+     * <p>只收 {@code maxDamage > 0} 的槽位：渔轮和铅锤在 {@code ModItems.partProps}
      * 里耐久传的是 0（不设耐久上限），它们天然不进列表、也不会在 HUD 上出现。
      * 这就是用户那条"有耐久定义的就显示"。
      *
@@ -3175,7 +3175,7 @@ public final class FishingSession {
             }
             int max = s.getMaxDamage();
             if (max <= 0) {
-                continue;   // 没有耐久定义（渔轮 / 鱼钩）→ 不显示
+                continue;   // 没有耐久定义（渔轮 / 铅锤）→ 不显示
             }
             buf[n++] = i;
             buf[n++] = s.getDamageValue();

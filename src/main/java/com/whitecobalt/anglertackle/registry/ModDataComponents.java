@@ -24,7 +24,7 @@ public final class ModDataComponents {
     public static final DeferredRegister<DataComponentType<?>> COMPONENTS =
             DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, AnglersTackle.MOD_ID);
 
-    /** 配件属性（鱼线/渔轮/鱼钩/浮漂共用）。 */
+    /** 配件属性（鱼线/渔轮/铅锤/浮漂共用）。 */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<PartStats>> PART_STATS =
             COMPONENTS.register("part_stats", () -> DataComponentType.<PartStats>builder()
                     .persistent(PartStats.CODEC)
@@ -78,7 +78,7 @@ public final class ModDataComponents {
     }
 
     /**
-     * 钓竿装配：竿身 + 鱼线 + 渔轮 + 鱼钩 + 拟饵 + 鱼饵。
+     * 钓竿装配：竿身 + 鱼线 + 渔轮 + 铅锤 + 拟饵 + 鱼饵。
      *
      * <p><b>存真实 {@link ItemStack} 而不是物品 id 字符串。</b>
      * 早先只存 id（注释原话是"部件本身不需要保存耐久"），但玩家要求
@@ -93,7 +93,7 @@ public final class ModDataComponents {
      * <p><b>哪些槽位能改由竿类型决定</b>（见 {@code RodModManager.slotApplies}）：
      * <pre>
      *   台钓竿：只有【鱼饵】可改（线、轮、钩都是竿身自带）
-     *   路亚竿：鱼线 / 渔轮 / 鱼钩 / 拟饵 可改
+     *   路亚竿：鱼线 / 渔轮 / 铅锤 / 拟饵 可改
      * </pre>
      *
      * <p>⚠ {@code floatPart} 字段已删除（浮漂整个配件被移除，见 ModItems 的注释）。

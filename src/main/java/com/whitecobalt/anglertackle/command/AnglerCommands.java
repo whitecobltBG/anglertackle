@@ -973,7 +973,7 @@ public final class AnglerCommands {
                         player.displayClientMessage(Component.literal(
                                 "§7  渔轮：§f" + partWithDurability(parts.reelStack())), false);
                         player.displayClientMessage(Component.literal(
-                                "§7  鱼钩：§f" + partWithDurability(parts.hookStack())), false);
+                                "§7  铅锤：§f" + partWithDurability(parts.hookStack())), false);
                         player.displayClientMessage(Component.literal(
                                 "§7  拟饵：§f" + partWithDurability(parts.lureStack())), false);
                         player.displayClientMessage(Component.literal(
@@ -1440,7 +1440,7 @@ public final class AnglerCommands {
     /**
      * 槽位内容 + 耐久，例如 {@code anglertackle:hemp_line 43/50}。
      *
-     * <p>没有耐久定义的配件（渔轮、鱼钩，{@code partProps} 传的耐久是 0）
+     * <p>没有耐久定义的配件（渔轮、铅锤，{@code partProps} 传的耐久是 0）
      * 只显示物品名，不加数字——和 HUD 的显示规则保持一致。
      */
     private static String partWithDurability(net.minecraft.world.item.ItemStack s) {

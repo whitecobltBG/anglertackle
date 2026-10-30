@@ -6,7 +6,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
 /**
- * 一个渔具配件（鱼线 / 渔轮 / 鱼钩 / 拟饵）的属性集合。
+ * 一个渔具配件（鱼线 / 渔轮 / 铅锤 / 拟饵）的属性集合。
  *
  * <p>设计依据：docs/11-配件系统详表.md §2「属性合成公式」。
  * 每个属性都是**相对基准的倍率**（1.0 = 木竿/麻线基准），
@@ -16,10 +16,10 @@ import net.minecraft.network.codec.StreamCodec;
  *
  * <h2>这里曾经有一堆死字段（已删除）</h2>
  * 浮漂的 {@code sensitivity / previewVisibility / nightVisible}、
- * 鱼钩的 {@code bigFishBonus / nightBonus} 全都**只出现在 tooltip 上**，
+ * 鱼钩的 {@code bigFishBonus / nightBonus}（已随鱼钩一起删除）当年全都**只出现在 tooltip 上**，
  * 游戏逻辑一次都没读过 —— 玩家照着 tooltip 选配件，实际毫无作用。
  * 用户定案："去掉这个功能，目前没看到两配件作用"。
- * 于是**整个浮漂槽被移除**，鱼钩只保留唯一真正生效的「提竿窗口」。
+ * 于是**整个浮漂槽被移除**；鱼钩后来又整条删除（2026-10-30，改为铅锤槽）。
  *
  * <p>防复发：{@code tools/check-dead-fields.js} 会遍历本 record 的每个字段，
  * 检查是否存在"只读来显示、没人真消费"的情况。
@@ -134,12 +134,6 @@ public record PartStats(
         return new PartStats(1, 1, 1, 1, pullIdle, pullStruggle, drain, damping, tier);
     }
 
-    /**
-     * 便捷构造：鱼钩。
-     *
-     * <p>曾经还有"大个体权重"和"夜间效率"两个参数——它们**没有任何实现**，
-     * 已随浮漂槽一起删除（用户定案）。现在鱼钩只提供提竿窗口加成。
-     */
     /**
      * 便捷构造：拟饵。
      *

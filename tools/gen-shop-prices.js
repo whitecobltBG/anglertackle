@@ -683,7 +683,7 @@ function javaSource(r) {
   J.push('');
   J.push('    /** 获取方式。 */');
   J.push('    public enum Kind {');
-  J.push('        /** 免费（白/绿鱼钩、麻线、手线轮）。 */');
+  J.push('        /** 免费（麻线、手线轮）。 */');
   J.push('        FREE,');
   J.push('        /** 花鱼币买。 */');
   J.push('        BUY,');
